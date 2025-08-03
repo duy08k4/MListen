@@ -26,7 +26,14 @@ const MainPage: React.FC = () => {
 
     // Toggle
     const toggleDeleteButton = () => {
-        setIsDelete(!isDelete)
+        const toggleValue = !isDelete
+
+        if (!toggleValue) {
+            const newListChoose = listChoose.map(() => false)
+            setListChoose([...newListChoose])
+        }
+
+        setIsDelete(toggleValue)
     }
 
     const toggleDeleteTag = (index: number) => {
@@ -130,7 +137,7 @@ const MainPage: React.FC = () => {
                         </div>
 
                         <div className="h-fit w-full flex gap-2.5 bg-white px-[10px] py-[10px]">
-                            <button className="flex-1 h-fit text-undermediumSize font-medium bg-lightGrayy py-2.5 rounded-[10px]">Cancel</button>
+                            <button className="flex-1 h-fit text-undermediumSize font-medium bg-lightGrayy py-2.5 rounded-[10px]" onClick={toggleDeleteButton}>Cancel</button>
                             <button className="flex-1 h-fit text-undermediumSize font-medium text-white bg-red py-2.5 rounded-[10px]">Delete</button>
                         </div>
                     </div>
