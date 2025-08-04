@@ -4,6 +4,10 @@ import React, { useEffect, useState } from "react"
 // Import type
 import { Word } from "../types/ListWord.type"
 
+// Import component
+import Listen from "./Listen.mainPage.comp"
+
+
 const ListWord: React.FC = () => {
     // State
     const [isDeleteWord, setIsDeleteWord] = useState<boolean>(false)
@@ -39,7 +43,7 @@ const ListWord: React.FC = () => {
 
 
     return (
-        <div className="ListWord h-full w-full bg-[transparent] flex flex-col gap-2.5 ">
+        <div className="ListWord relative h-full w-full bg-[transparent] flex flex-col gap-2.5 ">
             <div className="ListWord__functionContainer w-full h-[80px] bg-white flex items-center gap-5 shadow-[0px_0px_5px_#d3d3d3] rounded-[10px] px-[20px]">
                 <div className="h-full flex gap-1.5 flex-col justify-center">
                     <input
@@ -216,6 +220,8 @@ const ListWord: React.FC = () => {
                     </tbody>
                 </table>
             </div>
+
+            <Listen />
         </div>
     )
 }

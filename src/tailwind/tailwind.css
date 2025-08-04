@@ -38,12 +38,14 @@
 @theme {
     --color-dark: #3e3f46;
     --color-green: #4FBF9F;
+    --color-green-rgba: rgba(79,191,159,0.1);
     --color-red: #FF7070;
     --color-blue: #00CED1;
     --color-orange: #FFD280;
     --color-grayy: #808080;
     --color-lightGrayy: #d3d3d3;
-
+    
+    --text-hugeSige: 54px;
     --text-largeSize: 34px;
     --text-bigSize: 24px;
     --text-mediumSize: 18px;

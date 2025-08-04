@@ -7,21 +7,21 @@ import React, { useRef, useState } from "react"
 // Import component
 import Empty from "../../components/Empty.mainPage.comp"
 import ListWord from "../../components/ListWord.mainPage.comp"
-import Listen from "../../components/Listen.mainPage.comp"
+import NewSet from "../../components/NewSet.mainPage.comp"
 
 const MainPage: React.FC = () => {
     // State
     const testData = [1, 1, 1, 1, 1, 1, 1, 1]
     const [listChoose, setListChoose] = useState<Array<boolean>>(testData.map(() => false))
     const [isDelete, setIsDelete] = useState<boolean>(false)
-    const [renderedComponent, setRenderedComponent] = useState<string>("listen")
+    const [isNewSet, setIsNewSet] = useState<boolean>(false)
+    const [renderedComponent, setRenderedComponent] = useState<string>("listWord")
 
 
     // Component
     const components = useRef<Record<string, JSX.Element | string>>({
         empty: <Empty />,
         listWord: <ListWord />,
-        listen: <Listen />
     })
 
     // Toggle
@@ -44,6 +44,15 @@ const MainPage: React.FC = () => {
             listChoose[index] = toggleValue
             setListChoose([...listChoose_copy])
         }
+    }
+
+    const toggleAddNewSet = () => {
+        setIsNewSet(!isNewSet)
+    }
+
+    // Toast
+    const showToast = (toastContent: string, milisecondTime: number) => {
+
     }
 
     // Change
@@ -69,7 +78,7 @@ const MainPage: React.FC = () => {
     }
 
     return (
-        <div className="MainPage h-full w-full flex bg-[#f5f5f5]">
+        <div className="MainPage relative h-full w-full flex bg-[#f5f5f5]">
             <div className="MainPage__listWordSet h-full w-[20%] bg-white shadow-[4px_0px_10px_#d3d3d3] flex flex-col">
 
                 <div className="MainPage__listWordSet--basicalFunc flex flex-col gap-5 px-[20px] pt-[20px] pb-[10px]">
@@ -77,7 +86,7 @@ const MainPage: React.FC = () => {
                         <p className="text-mediumSize font-semibold">Main</p>
 
                         <div className="flex items-center gap-2.5">
-                            <button className="bg-green px-5 py-1 rounded-[5px]" title="Create">
+                            <button className="bg-green px-5 py-1 rounded-[5px]" title="Create" onClick={toggleAddNewSet}>
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5 stroke-white stroke-2">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 10.5v6m3-3H9m4.06-7.19-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
                                 </svg>
@@ -147,6 +156,9 @@ const MainPage: React.FC = () => {
             <div className="MainPage--main flex-1 bg-[transparent] !px-padding-xy pt-padding-y overflow-y-auto">
                 {components.current[renderedComponent]}
             </div>
+
+            {isNewSet && ( <NewSet toggleNewSetForm={toggleAddNewSet} /> )}
+
         </div>
     )
 }

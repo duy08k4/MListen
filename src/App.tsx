@@ -2,9 +2,6 @@
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-// Import images
-import AppLogo from "./assets/LogoApp.png"
-
 // Import pages
 import StartPage from "./pages/startPage/StartPage.page";
 import MainPage from "./pages/mainPage/MainPage.page";
