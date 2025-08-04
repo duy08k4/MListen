@@ -11,8 +11,9 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.11",
-    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-fs": "^2.4.1",
     "@tauri-apps/plugin-opener": "^2",
+    "date-and-time": "^4.0.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.7.1",

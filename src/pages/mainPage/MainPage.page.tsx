@@ -1,5 +1,5 @@
 // Import libraries
-import React, { useRef, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 
 // Import images
 // import AppLogo from "../../assets/LogoApp.png"
@@ -8,6 +8,9 @@ import React, { useRef, useState } from "react"
 import Empty from "../../components/Empty.mainPage.comp"
 import ListWord from "../../components/ListWord.mainPage.comp"
 import NewSet from "../../components/NewSet.mainPage.comp"
+
+// Import methid system file
+import { readFile } from "../../tauri_method/tauri_method"
 
 const MainPage: React.FC = () => {
     // State
@@ -23,6 +26,16 @@ const MainPage: React.FC = () => {
         empty: <Empty />,
         listWord: <ListWord />,
     })
+
+    // Effect
+    useEffect(() => {
+        (async () => {
+            if (!isNewSet) {
+                const data = await readFile(import.meta.env.VITE_SAVE_SETS)
+                console.log(data)
+            }
+        })()
+    }, [isNewSet])
 
     // Toggle
     const toggleDeleteButton = () => {
@@ -50,11 +63,6 @@ const MainPage: React.FC = () => {
         setIsNewSet(!isNewSet)
     }
 
-    // Toast
-    const showToast = (toastContent: string, milisecondTime: number) => {
-
-    }
-
     // Change
 
     const changeChooseAll = (checked: boolean) => {
@@ -73,8 +81,6 @@ const MainPage: React.FC = () => {
             toggleDeleteTag(index)
             return
         }
-
-        console.log("haha")
     }
 
     return (

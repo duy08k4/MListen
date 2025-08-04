@@ -1,7 +1,11 @@
 // Libraries
 import React, { useState } from "react"
 
-const Listen: React.FC = () => {
+interface listen {
+    closeListen: () => void
+}
+
+const Listen: React.FC<listen> = ({ closeListen }) => {
     // State
     const [isMeaning, setIsMeaning] = useState<boolean>(false)
 
@@ -37,7 +41,7 @@ const Listen: React.FC = () => {
 
 
             <div className="absolute bottom-[200px] left-1/2 translate-[-50%] flex items-center gap-5">
-                <button className="text-white font-medium flex items-center gap-2.5 bg-[red] py-2.5 px-5 rounded-[5px]">
+                <button className="text-white font-medium flex items-center gap-2.5 bg-[red] py-2.5 px-5 rounded-[5px]" onClick={ closeListen }>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6 stroke-white">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 7.5A2.25 2.25 0 0 1 7.5 5.25h9a2.25 2.25 0 0 1 2.25 2.25v9a2.25 2.25 0 0 1-2.25 2.25h-9a2.25 2.25 0 0 1-2.25-2.25v-9Z" />
                     </svg>
