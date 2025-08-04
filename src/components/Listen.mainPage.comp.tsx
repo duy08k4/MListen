@@ -3,7 +3,7 @@ import React from "react"
 
 const Listen: React.FC = () => {
     return (
-        <p>Listen</p>
+        <div className="Listen h-full w-full bg-[transparent]"></div>
     )
 }
 

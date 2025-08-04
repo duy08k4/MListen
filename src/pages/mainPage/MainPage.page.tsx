@@ -14,7 +14,7 @@ const MainPage: React.FC = () => {
     const testData = [1, 1, 1, 1, 1, 1, 1, 1]
     const [listChoose, setListChoose] = useState<Array<boolean>>(testData.map(() => false))
     const [isDelete, setIsDelete] = useState<boolean>(false)
-    const [renderedComponent, setRenderedComponent] = useState<string>("listWord")
+    const [renderedComponent, setRenderedComponent] = useState<string>("listen")
 
 
     // Component

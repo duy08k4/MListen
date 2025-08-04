@@ -2,12 +2,12 @@
 import React, { useEffect, useState } from "react"
 
 // Import type
-import { Word } from "./types/ListWord.type"
+import { Word } from "../types/ListWord.type"
 
 const ListWord: React.FC = () => {
     // State
     const [isDeleteWord, setIsDeleteWord] = useState<boolean>(false)
-    const [isAddNewWord, setIsAddNewWord] = useState<boolean>(true)
+    const [isAddNewWord, setIsAddNewWord] = useState<boolean>(false)
 
     // Data
     const [nameSet, setNameSet] = useState<string>("Undefile Name")
