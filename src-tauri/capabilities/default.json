@@ -8,6 +8,21 @@
   "permissions": [
     "core:default",
     "opener:default",
-    "fs:default"
+    "fs:default",
+    "fs:scope-document-recursive",
+    "fs:allow-create",
+    "fs:allow-write-text-file",
+    "fs:allow-read-text-file",
+    {
+      "identifier": "fs:scope",
+      "allow": [
+        {
+          "path": "$DOCUMENT"
+        },
+        {
+          "path": "$DOCUMENT/**"
+        }
+      ]
+    }
   ]
 }

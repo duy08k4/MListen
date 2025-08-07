@@ -17,14 +17,18 @@
         "height": 600
       }
     ],
+    "withGlobalTauri": true,
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; img-src 'self' asset: https://asset.localhost"
     }
   },
   "plugins": {
     "fs": {
-      "requireLiteralLeadingDot": false
-    }
+      
+    },
+    "permissions": [
+      "default"
+    ]
   },
   "bundle": {
     "active": true,

@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react"
 
 // Import type
-import { Word } from "../types/ListWord.type"
+import { Word } from "../types/DataStructure"
 
 // Import component
 import Listen from "./Listen.mainPage.comp"
@@ -16,30 +16,59 @@ const ListWord: React.FC = () => {
 
     // Data
     const [nameSet, setNameSet] = useState<string>("Undefile Name")
+    const [words, setWords] = useState<Array<any>>([1, 1, 1, 1, 1, 1, 1]) // Change this type's variable
+    const [listWordDelete, setListWordDelete] = useState<Array<boolean>>(words.map(() => false))
     const [newWord, setNewWord] = useState<Word>({
-        word: "",
-        transcription: "",
-        partOfSpeech: "",
-        meaning: ""
+        word: "a",
+        transcription: "a",
+        id: "",
+        partOfSpeech: "a",
+        meaning: "a"
     })
     const [changeHistory, setChangeHistory] = useState<Array<string>>([])
 
     // Toggle
     const toggleDeleteWord = () => {
+        const newList = listWordDelete.map(() => false)
+        setListWordDelete([...newList])
         setIsDeleteWord(!isDeleteWord)
     }
 
     const toggleAddNewWord = () => {
         setIsAddNewWord(!isAddNewWord)
     }
-    
+
     const toggleListen = () => {
         setIsListen(!isListen)
     }
 
+    const toggleChooseAll = (checked: boolean) => {
+        if (checked) {
+            const newList = listWordDelete.map(() => true)
+            setListWordDelete([...newList])
+        } else {
+            const newList = listWordDelete.map(() => false)
+            setListWordDelete([...newList])
+        }
+    }
+
     // Handler
+    const chooseDeleteWord = (index: number) => {
+        const toggleValue = !listWordDelete[index]
+
+        if (typeof toggleValue === "boolean") {
+            const listWordDelete_copy = listWordDelete
+            listWordDelete_copy[index] = toggleValue
+            setListWordDelete([...listWordDelete_copy])
+        }
+    }
+
+    const chooseTagDeleteWord = (index: number) => {
+        chooseDeleteWord(index)
+    }
+
     const handleAddNewWord = (key: keyof Word, value: string) => {
-        if (key && value) {
+        if (key) {
             const newWord_cop = newWord
             newWord_cop[key] = value
             setNewWord({ ...newWord_cop })
@@ -57,7 +86,6 @@ const ListWord: React.FC = () => {
                         value={nameSet}
                         onChange={(e) => { setNameSet(e.target.value) }}
                     />
-                    <p className="text-normalSize font-medium text-grayy">100 words</p>
                 </div>
 
                 <div className="flex-1 flex gap-2.5">
@@ -95,7 +123,7 @@ const ListWord: React.FC = () => {
                 </div>
 
                 <div className="flex gap-2.5">
-                    <button className="text-normalSize font-medium text-white flex items-center gap-2.5 bg-blue py-[10px] px-[20px] rounded-[5px]" onClick={ toggleListen }>
+                    <button className="text-normalSize font-medium text-white flex items-center gap-2.5 bg-blue py-[10px] px-[20px] rounded-[5px]" onClick={toggleListen}>
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-4 stroke-white stroke-2">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z" />
                         </svg>
@@ -124,7 +152,7 @@ const ListWord: React.FC = () => {
                             <input type="text" className="outline-none flex-1" placeholder="Search word..." />
                         </div>
 
-                        <p className="text-normal font-medium">10 words</p>
+                        <p className="text-normal font-medium">{words.length} words</p>
                     </div>
 
                     <div className="w-fit h-fit flex gap-2.5">
@@ -183,7 +211,7 @@ const ListWord: React.FC = () => {
                 <table className="w-full">
                     <thead className="bg-[#eeeeee]">
                         <tr className="leading-[3]">
-                            {isDeleteWord && (<th><input type="checkbox" /></th>)}
+                            {isDeleteWord && (<th><input type="checkbox" onChange={(e) => { toggleChooseAll(e.target.checked) }} /></th>)}
                             <th>Order</th>
                             <th>Word</th>
                             <th>Transcription</th>
@@ -193,23 +221,18 @@ const ListWord: React.FC = () => {
                     </thead>
 
                     <tbody>
-                        <tr className="leading-[3] border-b-[0.5px] border-b-lightGrayy hover:bg-[#f5f5f5] hover:cursor-grab">
-                            {isDeleteWord && (<td className="text-center"><input type="checkbox" /></td>)}
-                            <td className="text-center py-2.5">1</td>
-                            <td className="text-center py-2.5">Custom</td>
-                            <td className="text-center py-2.5">'kəstəm</td>
-                            <td className="text-center py-2.5">verb</td>
-                            <td className="text-center py-2.5">Phong tục</td>
-                        </tr>
-
-                        <tr className="leading-[3] border-b-[0.5px] border-b-lightGrayy hover:bg-[#f5f5f5] hover:cursor-grab">
-                            {isDeleteWord && (<td className="text-center"><input type="checkbox" /></td>)}
-                            <td className="text-center py-2.5">2</td>
-                            <td className="text-center py-2.5">Custom</td>
-                            <td className="text-center py-2.5">'kəstəm</td>
-                            <td className="text-center py-2.5">verb</td>
-                            <td className="text-center py-2.5">Phong tục</td>
-                        </tr>
+                        {words.map((data, index) => {
+                            return (
+                                <tr key={index} className="leading-[3] border-b-[0.5px] border-b-lightGrayy hover:bg-[#f5f5f5] hover:cursor-grab" onClick={() => { chooseTagDeleteWord(index) }}>
+                                    {isDeleteWord && (<td className="text-center"><input type="checkbox" onChange={() => { chooseDeleteWord(index) }} checked={listWordDelete[index]} /></td>)}
+                                    <td className="text-center py-2.5">{index + 1}</td>
+                                    <td className="text-center py-2.5">Custom</td>
+                                    <td className="text-center py-2.5">'kəstəm</td>
+                                    <td className="text-center py-2.5">verb</td>
+                                    <td className="text-center py-2.5">Phong tục</td>
+                                </tr>
+                            )
+                        })}
 
 
                         {isAddNewWord && (
@@ -225,7 +248,7 @@ const ListWord: React.FC = () => {
                     </tbody>
                 </table>
             </div>
-            { isListen && (<Listen closeListen={ toggleListen } />) }
+            {isListen && (<Listen closeListen={toggleListen} />)}
         </div>
     )
 }

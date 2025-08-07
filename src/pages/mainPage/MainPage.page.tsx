@@ -11,15 +11,15 @@ import NewSet from "../../components/NewSet.mainPage.comp"
 
 // Import methid system file
 import { readFile } from "../../tauri_method/tauri_method"
+import { ToastContainer } from "react-toastify"
 
 const MainPage: React.FC = () => {
     // State
-    const testData = [1, 1, 1, 1, 1, 1, 1, 1]
-    const [listChoose, setListChoose] = useState<Array<boolean>>(testData.map(() => false))
+    const dataSet = [1, 1, 1, 1, 1, 1, 1, 1]
+    const [listChoose, setListChoose] = useState<Array<boolean>>(dataSet.map(() => false))
     const [isDelete, setIsDelete] = useState<boolean>(false)
     const [isNewSet, setIsNewSet] = useState<boolean>(false)
     const [renderedComponent, setRenderedComponent] = useState<string>("listWord")
-
 
     // Component
     const components = useRef<Record<string, JSX.Element | string>>({
@@ -31,8 +31,7 @@ const MainPage: React.FC = () => {
     useEffect(() => {
         (async () => {
             if (!isNewSet) {
-                const data = await readFile(import.meta.env.VITE_SAVE_SETS)
-                console.log(data)
+                
             }
         })()
     }, [isNewSet])
@@ -54,7 +53,7 @@ const MainPage: React.FC = () => {
 
         if (typeof toggleValue === "boolean") {
             const listChoose_copy = listChoose
-            listChoose[index] = toggleValue
+            listChoose_copy[index] = toggleValue
             setListChoose([...listChoose_copy])
         }
     }
@@ -114,7 +113,7 @@ const MainPage: React.FC = () => {
                 </div>
 
                 <div className="MainPage__listWordSet--list w-full flex-1 flex flex-col gap-2.5 px-[10px] py-[10px]">
-                    {testData.map((data, index) => (
+                    {dataSet.map((data, index) => (
                         <div
                             key={index}
                             className="MainPage__tagSet flex items-center gap-5 bg-white px-5 py-4 rounded-[10px] border-[0.5px] border-lightGrayy hover:bg-[#f5f5f5] hover:cursor-grab active:cursor-grabbing"
@@ -163,8 +162,8 @@ const MainPage: React.FC = () => {
                 {components.current[renderedComponent]}
             </div>
 
-            {isNewSet && ( <NewSet toggleNewSetForm={toggleAddNewSet} /> )}
-
+            {isNewSet && (<NewSet toggleNewSetForm={toggleAddNewSet} />)}
+            <ToastContainer />
         </div>
     )
 }
