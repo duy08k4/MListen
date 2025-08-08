@@ -9,32 +9,42 @@ import Empty from "../../components/Empty.mainPage.comp"
 import ListWord from "../../components/ListWord.mainPage.comp"
 import NewSet from "../../components/NewSet.mainPage.comp"
 
-// Import methid system file
-import { readFile } from "../../tauri_method/tauri_method"
+// Import redux
 import { ToastContainer } from "react-toastify"
+import { useSelector } from "react-redux"
+import { RootState } from "../../redux/store"
+
+// Import method system file
+import { readFile } from "../../tauri_method/tauri_method"
+
+// Import type
+import { SetStructure } from "../../types/DataStructure"
 
 const MainPage: React.FC = () => {
     // State
-    const dataSet = [1, 1, 1, 1, 1, 1, 1, 1]
-    const [listChoose, setListChoose] = useState<Array<boolean>>(dataSet.map(() => false))
     const [isDelete, setIsDelete] = useState<boolean>(false)
     const [isNewSet, setIsNewSet] = useState<boolean>(false)
-    const [renderedComponent, setRenderedComponent] = useState<string>("listWord")
+    const [renderedComponent, setRenderedComponent] = useState<"listWord" | "empty">("empty")
 
-    // Component
-    const components = useRef<Record<string, JSX.Element | string>>({
-        empty: <Empty />,
-        listWord: <ListWord />,
+    // Set data
+    const [dataSet, setDataSet] = useState<SetStructure[]>([])
+    const [listChoose, setListChoose] = useState<Array<boolean>>(dataSet.map(() => false))
+    const [chooseSet, setChooseSet] = useState<SetStructure>({
+        id: "",
+        name: "",
+        timeCreate: ""
     })
+
+    // Redux
+    const newSet_state = useSelector((state: RootState) => state.activeAction.newSet)
 
     // Effect
     useEffect(() => {
         (async () => {
-            if (!isNewSet) {
-                
-            }
+            const data = await readFile<SetStructure>()
+            setDataSet(data)
         })()
-    }, [isNewSet])
+    }, [newSet_state])
 
     // Toggle
     const toggleDeleteButton = () => {
@@ -75,10 +85,13 @@ const MainPage: React.FC = () => {
     }
 
     // Handler
-    const chooseTag = (index: number) => {
+    const chooseTag = (index: number, objSet: SetStructure) => {
         if (isDelete) {
             toggleDeleteTag(index)
             return
+        } else {
+            setChooseSet(objSet)
+            setRenderedComponent("listWord")
         }
     }
 
@@ -108,7 +121,7 @@ const MainPage: React.FC = () => {
 
                     <div className="flex justify-between">
                         <p className="text-grayy font-medium">Amount:</p>
-                        <p className="text-grayy font-medium">10 set</p>
+                        <p className="text-grayy font-medium">{dataSet.length} set</p>
                     </div>
                 </div>
 
@@ -117,7 +130,8 @@ const MainPage: React.FC = () => {
                         <div
                             key={index}
                             className="MainPage__tagSet flex items-center gap-5 bg-white px-5 py-4 rounded-[10px] border-[0.5px] border-lightGrayy hover:bg-[#f5f5f5] hover:cursor-grab active:cursor-grabbing"
-                            onClick={() => { chooseTag(index) }}
+                            onClick={() => { chooseTag(index, data) }}
+                            title={data.name}
                         >
                             {isDelete && (
                                 <div className="">
@@ -127,12 +141,12 @@ const MainPage: React.FC = () => {
 
                             <div className="flex-1 h-fit">
                                 <div className="flex flex-col">
-                                    <p className="select-none text-mediumSize font-medium">Setname</p>
+                                    <p className="w-4/5 select-none text-mediumSize font-medium truncate">{data.name}</p>
                                     <p className="select-none flex text-normalSize items-center gap-1.5 font-normal text-grayy">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-4 stroke-2 stroke-grayy">
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                                         </svg>
-                                        11:03, 4/8/2025
+                                        {data.timeCreate}
                                     </p>
                                 </div>
 
@@ -159,10 +173,12 @@ const MainPage: React.FC = () => {
             </div>
 
             <div className="MainPage--main flex-1 bg-[transparent] !px-padding-xy pt-padding-y overflow-y-auto">
-                {components.current[renderedComponent]}
+                {renderedComponent === "listWord" && <ListWord objSet={chooseSet} />}
+                {renderedComponent === "empty" && <Empty />}
             </div>
 
             {isNewSet && (<NewSet toggleNewSetForm={toggleAddNewSet} />)}
+
             <ToastContainer />
         </div>
     )

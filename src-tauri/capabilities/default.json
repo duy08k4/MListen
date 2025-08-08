@@ -21,6 +21,12 @@
         },
         {
           "path": "$DOCUMENT/**"
+        },
+        {
+          "path": "$DOCUMENT/mlisten/**"
+        },
+        {
+          "path": "$DOCUMENT/mlisten/set/**"
         }
       ]
     }

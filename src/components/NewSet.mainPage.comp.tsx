@@ -10,6 +10,10 @@ import { addANewSet } from "../tauri_method/tauri_method";
 // Import type
 import { SetStructure } from "../types/DataStructure";
 
+// Import redux
+import { changeStatus_newSet } from "../redux/active";
+import { useDispatch } from "react-redux";
+
 
 interface newSet {
     toggleNewSetForm: () => void
@@ -18,6 +22,9 @@ interface newSet {
 const NewSet: React.FC<newSet> = ({ toggleNewSetForm }) => {
     // State
     const [enableCreateBtn, setEnableCreateBtn] = useState<boolean>(false)
+
+    // Redux
+    const dispatch = useDispatch()
 
     // Data
     const [nameSet, setNameSet] = useState<string>("")
@@ -76,8 +83,10 @@ const NewSet: React.FC<newSet> = ({ toggleNewSetForm }) => {
     }, [nameSet])
 
     // Handler
-    const createSet = async (e: React.FormEvent) => {
+    const createSet = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        setEnableCreateBtn(true)
+
         if (nameSet && !nameSetConditionCheck.includes(false)) {
             const now = new Date()
             const data: SetStructure = {
@@ -91,7 +100,6 @@ const NewSet: React.FC<newSet> = ({ toggleNewSetForm }) => {
                 autoClose: false,
                 theme: "light",
             });
-
             await addANewSet(data).then(() => {
                 toast.dismiss(toastID)
                 toast.success('Set added', {
@@ -111,6 +119,9 @@ const NewSet: React.FC<newSet> = ({ toggleNewSetForm }) => {
                     theme: "light",
                 });
                 throw Error(error)
+            }).finally(() => {
+                setEnableCreateBtn(false)
+                dispatch(changeStatus_newSet())
             })
         } else {
             toast.warn("Please check  the name again", {
@@ -155,7 +166,7 @@ const NewSet: React.FC<newSet> = ({ toggleNewSetForm }) => {
 
                 <div className="flex items-center gap-2.5">
                     <button type="button" className="w-[30%] bg-[#eeeeee] py-2.5 rounded-[5px]" onClick={toggleNewSetForm} disabled={enableCreateBtn} >Cancel</button>
-                    <button type="submit" className="font-medium text-white flex-1 bg-green py-2.5 rounded-[5px]" >Create</button>
+                    <button type="submit" className="font-medium text-white flex-1 bg-green py-2.5 rounded-[5px]" disabled={enableCreateBtn} >Create</button>
                 </div>
             </form>
 

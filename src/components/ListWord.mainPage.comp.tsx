@@ -2,30 +2,52 @@
 import React, { useEffect, useState } from "react"
 
 // Import type
-import { Word } from "../types/DataStructure"
+import { Word, SetStructure } from "../types/DataStructure"
 
 // Import component
 import Listen from "./Listen.mainPage.comp"
 
+// Import method system file
+import { readFile } from "../tauri_method/tauri_method"
 
-const ListWord: React.FC = () => {
+type ListWord = {
+    objSet: SetStructure
+}
+
+
+const ListWord: React.FC<ListWord> = ({ objSet }) => {
     // State
     const [isDeleteWord, setIsDeleteWord] = useState<boolean>(false)
     const [isAddNewWord, setIsAddNewWord] = useState<boolean>(false)
     const [isListen, setIsListen] = useState<boolean>(false)
 
     // Data
-    const [nameSet, setNameSet] = useState<string>("Undefile Name")
-    const [words, setWords] = useState<Array<any>>([1, 1, 1, 1, 1, 1, 1]) // Change this type's variable
+    const [nameSet, setNameSet] = useState<string>(objSet.name)
+    const [idSet, setIdSet] = useState<string>()
+    const [words, setWords] = useState<Word[]>([])
     const [listWordDelete, setListWordDelete] = useState<Array<boolean>>(words.map(() => false))
     const [newWord, setNewWord] = useState<Word>({
-        word: "a",
-        transcription: "a",
+        word: "",
+        transcription: "",
         id: "",
-        partOfSpeech: "a",
-        meaning: "a"
+        partOfSpeech: "",
+        meaning: ""
     })
     const [changeHistory, setChangeHistory] = useState<Array<string>>([])
+
+    useEffect(() => {
+        setNameSet(objSet.name)
+        setIdSet(objSet.id)
+    }, [objSet])
+
+    useEffect(() => {
+        (async () => {
+            if (idSet) {
+                const listWord = await readFile<Word>(idSet)
+                setWords(listWord)
+            }
+        })()
+    }, [idSet])
 
     // Toggle
     const toggleDeleteWord = () => {
