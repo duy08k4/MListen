@@ -13,7 +13,7 @@ import Listen from "./Listen.mainPage.comp"
 import { useDebounce } from "../customHooks/debounce"
 
 // Import method system file
-import { addANewWord, changeSetName, readFile } from "../tauri_method/tauri_method"
+import { addANewWord, changeSetName, deleteWord, readFile } from "../tauri_method/tauri_method"
 
 // Import redux
 import { useDispatch, useSelector } from "react-redux"
@@ -32,9 +32,12 @@ const ListWord: React.FC<ListWord> = ({ objSet }) => {
     const [isListen, setIsListen] = useState<boolean>(false)
 
     // Data
-    const [nameSet, setNameSet] = useState<string>(objSet.name)
+    const [nameSet, setNameSet] = useState<string>(objSet.name ?? "")
     const [idSet, setIdSet] = useState<string>("")
     const [words, setWords] = useState<Word[]>([])
+    const [keySearch, setKeySearch] = useState<string>("")
+    const [wordsSearch, setWordsSearch] = useState<Word[]>([])
+
     const [listWordDelete, setListWordDelete] = useState<Array<boolean>>(words.map(() => false))
     const [newWord, setNewWord] = useState<Word>({
         word: "",
@@ -52,6 +55,7 @@ const ListWord: React.FC<ListWord> = ({ objSet }) => {
     // Debounce
     const debounce_nameSet = useDebounce(nameSet, 1000)
     const debounce_newWord = useDebounce(newWord, 500)
+    const debounce_keySearch = useDebounce(keySearch, 500)
 
     useEffect(() => {
         setNameSet(objSet.name)
@@ -65,20 +69,29 @@ const ListWord: React.FC<ListWord> = ({ objSet }) => {
                 setWords(listWord)
             }
         })()
-    }, [idSet, debounce_newWord])
+    }, [idSet, debounce_newWord, state_newWord])
 
     // Toggle
     const toggleDeleteWord = () => {
-        const newList = listWordDelete.map(() => false)
-        setListWordDelete([...newList])
-        setIsDeleteWord(!isDeleteWord)
+        if (!state_newWord) {
+            const newList = listWordDelete.map(() => false)
+            setListWordDelete([...newList])
+            setIsDeleteWord(!isDeleteWord)
+        } else {
+            toast.info('Your word is being progressed', {
+                position: "bottom-right",
+                autoClose: 5000,
+                closeOnClick: true,
+                theme: "light",
+            });
+        }
     }
 
     const toggleAddNewWord = () => {
         if (!state_newWord) {
             setIsAddNewWord(!isAddNewWord)
         } else {
-            toast.info('Your word is being added', {
+            toast.info('Your word is being progressed', {
                 position: "bottom-right",
                 autoClose: 5000,
                 closeOnClick: true,
@@ -116,6 +129,34 @@ const ListWord: React.FC<ListWord> = ({ objSet }) => {
         chooseDeleteWord(index)
     }
 
+    // Search word
+    useEffect(() => searchWord(), [debounce_keySearch])
+
+    const searchWord = () => {
+        if (debounce_keySearch) {
+            const searchResult = words.filter(word => word.word.toLowerCase().includes(debounce_keySearch.toLocaleLowerCase()))
+
+            if (searchResult.length === 0) {
+                toast.warn(`Word not found`, {
+                    position: "bottom-right",
+                    autoClose: 5000,
+                    closeOnClick: true,
+                    theme: "light",
+                });
+            } else {
+                toast.success(`Found ${searchResult.length} word${searchResult.length > 1 ? 's': ''}`, {
+                    position: "bottom-right",
+                    autoClose: 5000,
+                    closeOnClick: true,
+                    theme: "light",
+                });
+                setWordsSearch(searchResult)
+            }
+        } else {
+            setWordsSearch([])
+        }
+    }
+
     // Add new word
     const handleInputNewWord = (key: keyof Word, value: string) => {
         if (key) {
@@ -129,7 +170,7 @@ const ListWord: React.FC<ListWord> = ({ objSet }) => {
         const additionalNewWord: Word = { ...newWord, id: v4() }
         const listValue = Object.values(additionalNewWord).map(value => value.trim().length > 0 ? true : false)
         const checkNewWord = listValue.includes(false)
-        console.log(listValue)
+
         if (checkNewWord) {
             toast.warn('Please fill all fields', {
                 position: "bottom-right",
@@ -149,7 +190,7 @@ const ListWord: React.FC<ListWord> = ({ objSet }) => {
 
             dispatch(changeStatus_newWord(true))
 
-            await addANewWord(idSet, newWord).then(() => {
+            await addANewWord(idSet, additionalNewWord).then(() => {
                 toast.dismiss(proccessToast)
                 toast.success(`Added your word`, {
                     position: "bottom-right",
@@ -209,6 +250,53 @@ const ListWord: React.FC<ListWord> = ({ objSet }) => {
         })()
     }, [debounce_nameSet])
 
+    // Delete word
+    const handleDeleteWord = async () => {
+        const listDelete = listWordDelete.map((value, index) => value ? words[index].id : null).filter(value => value) as string[]
+
+        if (listDelete.length === 0) {
+            toast.warn('Please choose at least one word', {
+                position: "bottom-right",
+                autoClose: 5000,
+                closeOnClick: true,
+                theme: "light",
+            });
+            return
+        }
+
+        toggleDeleteWord()
+
+        const proccessToast = toast.loading(`Deleting...`, {
+            position: "bottom-right",
+            autoClose: false,
+            closeOnClick: false,
+            theme: "light",
+        });
+
+        dispatch(changeStatus_newWord(true))
+
+        await deleteWord(idSet, listDelete).then(() => {
+            toast.dismiss(proccessToast)
+            toast.success('Deleted', {
+                position: "bottom-right",
+                autoClose: 5000,
+                closeOnClick: true,
+                theme: "light",
+            });
+        }).catch((err) => {
+            console.log(err)
+            toast.dismiss(proccessToast)
+            toast.error(`Can't delete`, {
+                position: "bottom-right",
+                autoClose: 5000,
+                closeOnClick: true,
+                theme: "light",
+            });
+        }).finally(() => {
+            dispatch(changeStatus_newWord(false))
+        })
+    }
+
 
     return (
         <div className="ListWord relative h-full w-full bg-[transparent] flex flex-col gap-2.5 ">
@@ -217,7 +305,7 @@ const ListWord: React.FC<ListWord> = ({ objSet }) => {
                     <input
                         type="text"
                         className="text-mediumSize font-medium outline-lightGrayy bg-[#dadada] px-[10px] py-[5px] rounded-[5px]"
-                        value={nameSet}
+                        value={nameSet || ""}
                         onChange={(e) => { setNameSet(e.target.value) }}
                     />
                 </div>
@@ -283,10 +371,10 @@ const ListWord: React.FC<ListWord> = ({ objSet }) => {
                                 <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
                             </svg>
 
-                            <input type="text" className="outline-none flex-1" placeholder="Search word..." />
+                            <input type="text" className="outline-none flex-1" placeholder="Search word..." onChange={(e) => { setKeySearch(e.target.value) }} value={keySearch} />
                         </div>
 
-                        <p className="text-normal font-medium">{words.length} words</p>
+                        <p className="text-normal font-medium">{wordsSearch.length > 0 ? wordsSearch.length : words.length} words</p>
                     </div>
 
                     <div className="w-fit h-fit flex gap-2.5">
@@ -321,7 +409,7 @@ const ListWord: React.FC<ListWord> = ({ objSet }) => {
 
                         ) : (
                             <>
-                                <button className="text-white bg-red flex items-center gap-2.5 px-5 rounded-[5px] py-2.5">
+                                <button className="text-white bg-red flex items-center gap-2.5 px-5 rounded-[5px] py-2.5" onClick={handleDeleteWord}>
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-4 stroke-3 stroke-white">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                                     </svg>
@@ -355,15 +443,28 @@ const ListWord: React.FC<ListWord> = ({ objSet }) => {
                     </thead>
 
                     <tbody>
-                        {words.map((data, index) => {
+                        {words && wordsSearch.length == 0 && words.map((data, index) => {
                             return (
                                 <tr key={index} className="leading-[3] border-b-[0.5px] border-b-lightGrayy hover:bg-[#f5f5f5] hover:cursor-grab" onClick={() => { chooseTagDeleteWord(index) }}>
-                                    {isDeleteWord && (<td className="text-center"><input type="checkbox" onChange={() => { chooseDeleteWord(index) }} checked={listWordDelete[index]} /></td>)}
+                                    {isDeleteWord && (<td className="text-center"><input type="checkbox" onChange={() => { chooseDeleteWord(index) }} checked={!!listWordDelete[index]} /></td>)}
                                     <td className="text-center py-2.5">{index + 1}</td>
-                                    <td className="text-center py-2.5">{data.word}</td>
-                                    <td className="text-center py-2.5">{data.transcription}</td>
-                                    <td className="text-center py-2.5">{data.partOfSpeech}</td>
-                                    <td className="text-center py-2.5">{data.meaning}</td>
+                                    <td title={data.word} className="text-center py-2.5">{data.word}</td>
+                                    <td title={data.transcription} className="text-center py-2.5">{data.transcription}</td>
+                                    <td title={data.partOfSpeech} className="text-center py-2.5">{data.partOfSpeech}</td>
+                                    <td title={data.meaning} className="max-w-[100px] text-center py-2.5 truncate">{data.meaning}</td>
+                                </tr>
+                            )
+                        })}
+
+                        {wordsSearch.length > 0 && wordsSearch.map((data, index) => {
+                            return (
+                                <tr key={index} className="leading-[3] border-b-[0.5px] border-b-lightGrayy hover:bg-[#f5f5f5] hover:cursor-grab" onClick={() => { chooseTagDeleteWord(index) }}>
+                                    {isDeleteWord && (<td className="text-center"><input type="checkbox" onChange={() => { chooseDeleteWord(index) }} checked={!!listWordDelete[index]} /></td>)}
+                                    <td className="text-center py-2.5">{index + 1}</td>
+                                    <td title={data.word} className="text-center py-2.5">{data.word}</td>
+                                    <td title={data.transcription} className="text-center py-2.5">{data.transcription}</td>
+                                    <td title={data.partOfSpeech} className="text-center py-2.5">{data.partOfSpeech}</td>
+                                    <td title={data.meaning} className="max-w-[100px] text-center py-2.5 truncate">{data.meaning}</td>
                                 </tr>
                             )
                         })}

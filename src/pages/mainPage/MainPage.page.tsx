@@ -39,6 +39,7 @@ const MainPage: React.FC = () => {
 
     // Redux
     const newSet_state = useSelector((state: RootState) => state.activeAction.newSet)
+    const state_newWord = useSelector((state: RootState) => state.activeAction.newWord)
 
     // Effect
     useEffect(() => {
@@ -51,7 +52,7 @@ const MainPage: React.FC = () => {
                 setChooseSet(newData)
             }
         })()
-    }, [newSet_state])
+    }, [newSet_state, state_newWord])
 
     // Toggle
     const toggleDeleteButton = () => {
