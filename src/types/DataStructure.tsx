@@ -3,13 +3,16 @@ interface Word {
     id: string,
     transcription: string,
     partOfSpeech: string,
-    meaning: string	
+    meaning: string,
+    timeCreate?: string
 }
 
 interface SetStructure {
     name: string,
+    originalName: string,
     id: string,
-    timeCreate: string
+    timeCreate: string,
+    timeUpdate: string
 }
 
 export type {

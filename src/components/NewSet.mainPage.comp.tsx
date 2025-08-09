@@ -91,8 +91,10 @@ const NewSet: React.FC<newSet> = ({ toggleNewSetForm }) => {
             const now = new Date()
             const data: SetStructure = {
                 name: nameSet,
-                id: v4(),
-                timeCreate: format(now, 'ddd, MMM DD YYYY HH:mm')
+                originalName: nameSet,
+                id: `mlisten_${v4()}`,
+                timeCreate: format(now, 'ddd, MMM DD YYYY HH:mm'),
+                timeUpdate: format(now, 'ddd, MMM DD YYYY HH:mm')
             }
 
             const toastID = toast.loading('Adding your set...', {

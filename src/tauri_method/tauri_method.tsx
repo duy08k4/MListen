@@ -11,12 +11,18 @@ import {
 
 import { join, resolveResource, documentDir } from '@tauri-apps/api/path';
 
+import { format } from 'date-and-time';
+
 // Import type
 import { Word, SetStructure } from '../types/DataStructure';
 
 
 // Read file
 export async function readFile<T extends Word | SetStructure>(fileName?: string): Promise<T[]> {
+  const checkPath = import.meta.env.VITE_FOLDER_NAME + "/" + import.meta.env.VITE_ALL_SET
+  const check = await exists(checkPath, { baseDir: BaseDirectory.Document })
+  if (!check) return JSON.parse("[]")
+
   if (!fileName) {
     const path = import.meta.env.VITE_FOLDER_NAME + "/" + import.meta.env.VITE_ALL_SET
     const data = await readTextFile(path, { baseDir: BaseDirectory.Document }).catch((err) => {
@@ -40,9 +46,32 @@ export async function readFile<T extends Word | SetStructure>(fileName?: string)
   }
 }
 
-// Ghi đè file
+// Write file
 export async function writeFile(fileName: string, content: string): Promise<void> {
   await writeTextFile(fileName, content, { baseDir: BaseDirectory.Document });
+}
+
+// Change set name
+export async function changeSetName(newName: string, setId: string): Promise<void> {
+  const path = import.meta.env.VITE_FOLDER_NAME + "/" + import.meta.env.VITE_ALL_SET
+  const data = await readTextFile(path, { baseDir: BaseDirectory.Document }).catch((err) => {
+    console.log(err)
+    throw Error(err)
+  })
+
+  const listData = JSON.parse(data) as SetStructure[]
+  const now = new Date()
+  const listWithoutTarget = listData.filter(set => set.id !== setId)
+  const target = listData.filter(set => set.id === setId)[0]
+  target.name = newName
+  target.timeUpdate = format(now, 'ddd, MMM DD YYYY HH:mm')
+  const newListData = [target, ...listWithoutTarget]
+  const documentPath = await documentDir()
+  const pathData = await join(documentPath, path)
+  await writeFile(pathData, JSON.stringify(newListData)).catch((err) => {
+    console.error(err)
+    throw Error(err)
+  })
 }
 
 // Add a new set into main file
@@ -74,7 +103,7 @@ export async function addANewSet(setData: SetStructure): Promise<void> {
 
   if (readData) { // Had data
     const oldData = JSON.parse(readData)
-    const newData = [...oldData, setData]
+    const newData = [setData, ...oldData]
     const documentPath = await documentDir()
     const pathData = await join(documentPath, path)
     await writeFile(pathData, JSON.stringify(newData)).catch((err) => {
@@ -93,6 +122,28 @@ export async function addANewSet(setData: SetStructure): Promise<void> {
   }
 
   await createSetFile(setData.id)
+}
+
+// Add a new word
+export async function addANewWord(setId: string, word: Word): Promise<void> {
+  const checkPath = import.meta.env.VITE_SET_DIRECT + "/" + `${setId}.json`
+  const check = exists(checkPath, { baseDir: BaseDirectory.Document })
+
+  if (!check) throw Error(`${setId}.json does not exists`)
+
+
+  const oldListWord = await readFile(setId)
+  const now = new Date()
+  const inputWord: Word = { ...word, timeCreate: format(now, 'ddd, MMM DD YYYY HH:mm') }
+  const newListWord = [...oldListWord, inputWord]
+
+  const path = import.meta.env.VITE_SET_DIRECT + "/" + `${setId}.json`
+  const documentPath = await documentDir()
+  const pathData = await join(documentPath, path)
+  await writeFile(path, JSON.stringify(newListWord)).catch((err) => {
+    console.error(err)
+    throw Error(err)
+  })
 }
 
 // Add a set file
@@ -117,7 +168,7 @@ export async function createSetFile(setName: string): Promise<void> {
       })
     })
   } else {
-    await mkdir("mlisten/set", { baseDir: BaseDirectory.Document }).catch((err) => {
+    await mkdir(import.meta.env.VITE_SET_DIRECT, { baseDir: BaseDirectory.Document }).catch((err) => {
       console.error(err)
       throw Error(err)
     })

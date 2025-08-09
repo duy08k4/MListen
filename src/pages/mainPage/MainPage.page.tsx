@@ -32,7 +32,9 @@ const MainPage: React.FC = () => {
     const [chooseSet, setChooseSet] = useState<SetStructure>({
         id: "",
         name: "",
-        timeCreate: ""
+        originalName: "",
+        timeCreate: "",
+        timeUpdate: ""
     })
 
     // Redux
@@ -43,6 +45,11 @@ const MainPage: React.FC = () => {
         (async () => {
             const data = await readFile<SetStructure>()
             setDataSet(data)
+
+            if (chooseSet.id) {
+                const newData = data.filter(set => set.id === chooseSet.id)[0]
+                setChooseSet(newData)
+            }
         })()
     }, [newSet_state])
 
@@ -146,7 +153,7 @@ const MainPage: React.FC = () => {
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-4 stroke-2 stroke-grayy">
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                                         </svg>
-                                        {data.timeCreate}
+                                        {data.timeUpdate}
                                     </p>
                                 </div>
 

@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
-// import type { PayloadAction } from '@reduxjs/toolkit'
+import type { PayloadAction } from '@reduxjs/toolkit'
 
 type activeAction = {
     newSet: boolean,
@@ -19,8 +19,8 @@ export const activeAction = createSlice({
             const toggleState = !state.newSet
             state.newSet = toggleState
         },
-        changeStatus_newWord: (state) => {
-            const toggleState = !state.newWord
+        changeStatus_newWord: (state, action: PayloadAction<boolean>) => {
+            const toggleState = action.payload
             state.newWord = toggleState
         }
     },

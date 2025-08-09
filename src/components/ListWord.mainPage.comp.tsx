@@ -1,5 +1,7 @@
 // Libraries
 import React, { useEffect, useState } from "react"
+import { toast } from "react-toastify"
+import { v4 } from "uuid"
 
 // Import type
 import { Word, SetStructure } from "../types/DataStructure"
@@ -7,8 +9,16 @@ import { Word, SetStructure } from "../types/DataStructure"
 // Import component
 import Listen from "./Listen.mainPage.comp"
 
+// Import custom hook
+import { useDebounce } from "../customHooks/debounce"
+
 // Import method system file
-import { readFile } from "../tauri_method/tauri_method"
+import { addANewWord, changeSetName, readFile } from "../tauri_method/tauri_method"
+
+// Import redux
+import { useDispatch, useSelector } from "react-redux"
+import { changeStatus_newSet, changeStatus_newWord } from "../redux/active"
+import { RootState } from "../redux/store"
 
 type ListWord = {
     objSet: SetStructure
@@ -23,7 +33,7 @@ const ListWord: React.FC<ListWord> = ({ objSet }) => {
 
     // Data
     const [nameSet, setNameSet] = useState<string>(objSet.name)
-    const [idSet, setIdSet] = useState<string>()
+    const [idSet, setIdSet] = useState<string>("")
     const [words, setWords] = useState<Word[]>([])
     const [listWordDelete, setListWordDelete] = useState<Array<boolean>>(words.map(() => false))
     const [newWord, setNewWord] = useState<Word>({
@@ -34,6 +44,14 @@ const ListWord: React.FC<ListWord> = ({ objSet }) => {
         meaning: ""
     })
     const [changeHistory, setChangeHistory] = useState<Array<string>>([])
+
+    // Redux
+    const dispatch = useDispatch()
+    const state_newWord = useSelector((state: RootState) => state.activeAction.newWord)
+
+    // Debounce
+    const debounce_nameSet = useDebounce(nameSet, 1000)
+    const debounce_newWord = useDebounce(newWord, 500)
 
     useEffect(() => {
         setNameSet(objSet.name)
@@ -47,7 +65,7 @@ const ListWord: React.FC<ListWord> = ({ objSet }) => {
                 setWords(listWord)
             }
         })()
-    }, [idSet])
+    }, [idSet, debounce_newWord])
 
     // Toggle
     const toggleDeleteWord = () => {
@@ -57,7 +75,16 @@ const ListWord: React.FC<ListWord> = ({ objSet }) => {
     }
 
     const toggleAddNewWord = () => {
-        setIsAddNewWord(!isAddNewWord)
+        if (!state_newWord) {
+            setIsAddNewWord(!isAddNewWord)
+        } else {
+            toast.info('Your word is being added', {
+                position: "bottom-right",
+                autoClose: 5000,
+                closeOnClick: true,
+                theme: "light",
+            });
+        }
     }
 
     const toggleListen = () => {
@@ -74,7 +101,7 @@ const ListWord: React.FC<ListWord> = ({ objSet }) => {
         }
     }
 
-    // Handler
+    // Choose delete word
     const chooseDeleteWord = (index: number) => {
         const toggleValue = !listWordDelete[index]
 
@@ -89,13 +116,98 @@ const ListWord: React.FC<ListWord> = ({ objSet }) => {
         chooseDeleteWord(index)
     }
 
-    const handleAddNewWord = (key: keyof Word, value: string) => {
+    // Add new word
+    const handleInputNewWord = (key: keyof Word, value: string) => {
         if (key) {
             const newWord_cop = newWord
             newWord_cop[key] = value
             setNewWord({ ...newWord_cop })
         }
     }
+
+    const handleAddANewWord = async () => {
+        const additionalNewWord: Word = { ...newWord, id: v4() }
+        const listValue = Object.values(additionalNewWord).map(value => value.trim().length > 0 ? true : false)
+        const checkNewWord = listValue.includes(false)
+        console.log(listValue)
+        if (checkNewWord) {
+            toast.warn('Please fill all fields', {
+                position: "bottom-right",
+                autoClose: 5000,
+                closeOnClick: true,
+                theme: "light",
+            });
+        } else {
+            toggleAddNewWord()
+
+            const proccessToast = toast.loading(`Adding ${newWord.word}`, {
+                position: "bottom-right",
+                autoClose: false,
+                closeOnClick: false,
+                theme: "light",
+            });
+
+            dispatch(changeStatus_newWord(true))
+
+            await addANewWord(idSet, newWord).then(() => {
+                toast.dismiss(proccessToast)
+                toast.success(`Added your word`, {
+                    position: "bottom-right",
+                    autoClose: 5000,
+                    closeOnClick: true,
+                    theme: "light",
+                });
+            }).catch((err) => {
+                console.error(err)
+                toast.dismiss(proccessToast)
+                toast.error(`Failed to add your word`, {
+                    position: "bottom-right",
+                    autoClose: 5000,
+                    closeOnClick: true,
+                    theme: "light",
+                });
+            }).finally(() => {
+                dispatch(changeStatus_newWord(false))
+                setNewWord({
+                    word: "",
+                    transcription: "",
+                    id: "",
+                    partOfSpeech: "",
+                    meaning: ""
+                })
+            })
+        }
+    }
+
+    // Change set name
+    const handleChangeSetName = async (newName: string, setId: string) => {
+        await changeSetName(newName, setId)
+    }
+
+    useEffect(() => {
+        (async () => {
+            if (debounce_nameSet && debounce_nameSet != objSet.name) {
+                await handleChangeSetName(nameSet, objSet.id).then(() => {
+                    toast.success('Changed name', {
+                        position: "bottom-right",
+                        autoClose: 5000,
+                        closeOnClick: true,
+                        theme: "light",
+                    });
+                }).catch((err) => {
+                    console.log(err)
+                    toast.error(`Can't change name`, {
+                        position: "bottom-right",
+                        autoClose: 5000,
+                        closeOnClick: true,
+                        theme: "light",
+                    });
+                }).finally(() => {
+                    dispatch(changeStatus_newSet())
+                })
+            }
+        })()
+    }, [debounce_nameSet])
 
 
     return (
@@ -248,10 +360,10 @@ const ListWord: React.FC<ListWord> = ({ objSet }) => {
                                 <tr key={index} className="leading-[3] border-b-[0.5px] border-b-lightGrayy hover:bg-[#f5f5f5] hover:cursor-grab" onClick={() => { chooseTagDeleteWord(index) }}>
                                     {isDeleteWord && (<td className="text-center"><input type="checkbox" onChange={() => { chooseDeleteWord(index) }} checked={listWordDelete[index]} /></td>)}
                                     <td className="text-center py-2.5">{index + 1}</td>
-                                    <td className="text-center py-2.5">Custom</td>
-                                    <td className="text-center py-2.5">'kəstəm</td>
-                                    <td className="text-center py-2.5">verb</td>
-                                    <td className="text-center py-2.5">Phong tục</td>
+                                    <td className="text-center py-2.5">{data.word}</td>
+                                    <td className="text-center py-2.5">{data.transcription}</td>
+                                    <td className="text-center py-2.5">{data.partOfSpeech}</td>
+                                    <td className="text-center py-2.5">{data.meaning}</td>
                                 </tr>
                             )
                         })}
@@ -259,11 +371,11 @@ const ListWord: React.FC<ListWord> = ({ objSet }) => {
 
                         {isAddNewWord && (
                             <tr className="leading-[3] bg-[#f5f5f5]">
-                                <td className="text-center py-2.5"><button className="w-full bg-green"><i className="fas fa-check text-white"></i></button></td>
-                                <td className="text-center py-2.5"><input type="text" className="outline-none h-fit w-[95%] bg-white px-2.5 border border-lightGrayy" value={newWord.word} onChange={(e) => { handleAddNewWord("word", e.target.value) }} placeholder="Word..." /></td>
-                                <td className="text-center py-2.5"><input type="text" className="outline-none h-fit w-[95%] bg-white px-2.5 border border-lightGrayy" value={newWord.transcription} onChange={(e) => { handleAddNewWord("transcription", e.target.value) }} placeholder="Transcription..." /></td>
-                                <td className="text-center py-2.5"><input type="text" className="outline-none h-fit w-[95%] bg-white px-2.5 border border-lightGrayy" value={newWord.partOfSpeech} onChange={(e) => { handleAddNewWord("partOfSpeech", e.target.value) }} placeholder="Part of speech..." /></td>
-                                <td className="text-center py-2.5"><input type="text" className="outline-none h-fit w-[95%] bg-white px-2.5 border border-lightGrayy" value={newWord.meaning} onChange={(e) => { handleAddNewWord("meaning", e.target.value) }} placeholder="Meaning..." /></td>
+                                <td className="text-center py-2.5"><button className="w-full bg-green" onClick={handleAddANewWord}><i className="fas fa-check text-white"></i></button></td>
+                                <td className="text-center py-2.5"><input type="text" className="outline-none h-fit w-[95%] bg-white px-2.5 border border-lightGrayy" value={newWord.word} onChange={(e) => { handleInputNewWord("word", e.target.value) }} placeholder="Word..." /></td>
+                                <td className="text-center py-2.5"><input type="text" className="outline-none h-fit w-[95%] bg-white px-2.5 border border-lightGrayy" value={newWord.transcription} onChange={(e) => { handleInputNewWord("transcription", e.target.value) }} placeholder="Transcription..." /></td>
+                                <td className="text-center py-2.5"><input type="text" className="outline-none h-fit w-[95%] bg-white px-2.5 border border-lightGrayy" value={newWord.partOfSpeech} onChange={(e) => { handleInputNewWord("partOfSpeech", e.target.value) }} placeholder="Part of speech..." /></td>
+                                <td className="text-center py-2.5"><input type="text" className="outline-none h-fit w-[95%] bg-white px-2.5 border border-lightGrayy" value={newWord.meaning} onChange={(e) => { handleInputNewWord("meaning", e.target.value) }} placeholder="Meaning..." /></td>
                             </tr>
                         )}
 
