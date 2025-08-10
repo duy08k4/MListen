@@ -30,6 +30,7 @@ const ListWord: React.FC<ListWord> = ({ objSet, statusDelete }) => {
     // State
     const [isDeleteWord, setIsDeleteWord] = useState<boolean>(false)
     const [isAddNewWord, setIsAddNewWord] = useState<boolean>(false)
+    const [hideDeleteWordButton, setHideDeleteWordButton] = useState<boolean>(false)
     const [isListen, setIsListen] = useState<boolean>(false)
 
     // Data
@@ -144,6 +145,7 @@ const ListWord: React.FC<ListWord> = ({ objSet, statusDelete }) => {
                     closeOnClick: true,
                     theme: "light",
                 });
+                setWordsSearch([])
             } else {
                 toast.success(`Found ${searchResult.length} word${searchResult.length > 1 ? 's' : ''}`, {
                     position: "bottom-right",
@@ -326,7 +328,7 @@ const ListWord: React.FC<ListWord> = ({ objSet, statusDelete }) => {
                                 <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                             </svg>
 
-                            Delete Set
+                            Delete Collection
                         </button>
                     )}
                 </div>
@@ -353,15 +355,17 @@ const ListWord: React.FC<ListWord> = ({ objSet, statusDelete }) => {
             <div className="ListWord__list w-full flex-1 bg-white flex flex-col gap-2.5 shadow-[0px_0px_5px_#d3d3d3] rounded-tl-[10px] rounded-tr-[10px] px-[20px] pt-5">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-5">
-                        <div className="w-[300px] h-fit flex items-center gap-2 px-2.5 py-1 rounded-[5px] border-[0.5px] border-lightGrayy">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-4">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-                            </svg>
+                        {!isDeleteWord && (
+                            <div className="w-[300px] h-fit flex items-center gap-2 px-2.5 py-1 rounded-[5px] border-[0.5px] border-lightGrayy">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-4">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                                </svg>
 
-                            <input type="text" className="outline-none flex-1" placeholder="Search word..." onChange={(e) => { setKeySearch(e.target.value) }} value={keySearch} />
-                        </div>
+                                <input type="text" className="outline-none flex-1" placeholder="Search word..." onChange={(e) => { setKeySearch(e.target.value) }} onFocus={() => { setHideDeleteWordButton(true) }} onBlur={() => { setHideDeleteWordButton(false) }} value={keySearch} />
+                            </div>
+                        )}
 
-                        <p className="text-normal font-medium">{wordsSearch.length > 0 ? wordsSearch.length : words.length} words</p>
+                        <p className="text-normal font-medium">{keySearch ? wordsSearch.length : words.length} words</p>
                     </div>
 
                     <div className="w-fit h-fit flex gap-2.5">
@@ -384,13 +388,15 @@ const ListWord: React.FC<ListWord> = ({ objSet, statusDelete }) => {
                                         New word
                                     </button>
 
-                                    <button className="text-white bg-red flex items-center gap-2.5 px-5 rounded-[5px] py-2.5" onClick={toggleDeleteWord}>
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-4 stroke-3 stroke-white">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                                        </svg>
+                                    {!hideDeleteWordButton && (
+                                        <button className="text-white bg-red flex items-center gap-2.5 px-5 rounded-[5px] py-2.5" onClick={toggleDeleteWord}>
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-4 stroke-3 stroke-white">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                            </svg>
 
-                                        Delete word
-                                    </button>
+                                            Delete word
+                                        </button>
+                                    )}
                                 </>
                             )
 
@@ -430,7 +436,7 @@ const ListWord: React.FC<ListWord> = ({ objSet, statusDelete }) => {
                     </thead>
 
                     <tbody>
-                        {words && wordsSearch.length == 0 && words.map((data, index) => {
+                        {words && !keySearch && words.map((data, index) => {
                             return (
                                 <tr key={index} className="leading-[3] border-b-[0.5px] border-b-lightGrayy hover:bg-[#f5f5f5] hover:cursor-grab" onClick={() => { chooseTagDeleteWord(index) }}>
                                     {isDeleteWord && (<td className="text-center"><input type="checkbox" onChange={() => { chooseDeleteWord(index) }} checked={!!listWordDelete[index]} /></td>)}
@@ -443,7 +449,7 @@ const ListWord: React.FC<ListWord> = ({ objSet, statusDelete }) => {
                             )
                         })}
 
-                        {wordsSearch.length > 0 && wordsSearch.map((data, index) => {
+                        {keySearch && wordsSearch.map((data, index) => {
                             return (
                                 <tr key={index} className="leading-[3] border-b-[0.5px] border-b-lightGrayy hover:bg-[#f5f5f5] hover:cursor-grab" onClick={() => { chooseTagDeleteWord(index) }}>
                                     {isDeleteWord && (<td className="text-center"><input type="checkbox" onChange={() => { chooseDeleteWord(index) }} checked={!!listWordDelete[index]} /></td>)}
