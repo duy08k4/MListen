@@ -10,15 +10,16 @@ import ListWord from "../../components/ListWord.mainPage.comp"
 import NewSet from "../../components/NewSet.mainPage.comp"
 
 // Import redux
-import { ToastContainer } from "react-toastify"
-import { useSelector } from "react-redux"
+import { toast, ToastContainer } from "react-toastify"
+import { useDispatch, useSelector } from "react-redux"
 import { RootState } from "../../redux/store"
 
 // Import method system file
-import { readFile } from "../../tauri_method/tauri_method"
+import { readFile, removeSet } from "../../tauri_method/tauri_method"
 
 // Import type
 import { SetStructure } from "../../types/DataStructure"
+import { changeStatus_deleteSet } from "../../redux/active"
 
 const MainPage: React.FC = () => {
     // State
@@ -38,8 +39,10 @@ const MainPage: React.FC = () => {
     })
 
     // Redux
-    const newSet_state = useSelector((state: RootState) => state.activeAction.newSet)
+    const dispatch = useDispatch()
+    const state_newSet = useSelector((state: RootState) => state.activeAction.newSet)
     const state_newWord = useSelector((state: RootState) => state.activeAction.newWord)
+    const state_deleteWord = useSelector((state: RootState) => state.activeAction.deleteSet)
 
     // Effect
     useEffect(() => {
@@ -51,8 +54,12 @@ const MainPage: React.FC = () => {
                 const newData = data.filter(set => set.id === chooseSet.id)[0]
                 setChooseSet(newData)
             }
+
+            if (data.length > dataSet.length) {
+                setChooseSet(data[0])
+            }
         })()
-    }, [newSet_state, state_newWord])
+    }, [state_newSet, state_newWord, state_deleteWord])
 
     // Toggle
     const toggleDeleteButton = () => {
@@ -63,7 +70,17 @@ const MainPage: React.FC = () => {
             setListChoose([...newListChoose])
         }
 
-        setIsDelete(toggleValue)
+        if (!state_deleteWord) {
+            setIsDelete(toggleValue)
+        } else {
+            toast.warn('Your collection is being progressed', {
+                position: "bottom-right",
+                autoClose: 5000,
+                closeOnClick: true,
+                theme: "light",
+            });
+            return
+        }
     }
 
     const toggleDeleteTag = (index: number) => {
@@ -81,7 +98,6 @@ const MainPage: React.FC = () => {
     }
 
     // Change
-
     const changeChooseAll = (checked: boolean) => {
         if (checked) {
             const newList = listChoose.map(() => true)
@@ -92,7 +108,7 @@ const MainPage: React.FC = () => {
         }
     }
 
-    // Handler
+    // Choose tag
     const chooseTag = (index: number, objSet: SetStructure) => {
         if (isDelete) {
             toggleDeleteTag(index)
@@ -102,6 +118,58 @@ const MainPage: React.FC = () => {
             setRenderedComponent("listWord")
         }
     }
+
+    // Delete set
+    const handleDeleteSet = async () => {
+        let listDelete = dataSet.map((set, index) => listChoose[index] ? set.id : null).filter(value => value) as string[]
+
+        if (listDelete.length === 0) {
+            toast.warn('Please choose at least one collection', {
+                position: "bottom-right",
+                autoClose: 5000,
+                closeOnClick: true,
+                theme: "light",
+            });
+            return
+        }
+
+        toggleDeleteButton()
+
+        const proccessToast = toast.loading(`Deleting...`, {
+            position: "bottom-right",
+            autoClose: false,
+            closeOnClick: false,
+            theme: "light",
+        });
+
+        dispatch(changeStatus_deleteSet(true))
+
+        await removeSet(listDelete).then(() => {
+            toast.dismiss(proccessToast)
+            toast.success('Deleted', {
+                position: "bottom-right",
+                autoClose: 5000,
+                closeOnClick: true,
+                theme: "light",
+            });
+
+            if (listDelete.includes(chooseSet.id)) {
+                setRenderedComponent("empty")
+            }
+        }).catch((err) => {
+            console.error(err)
+            toast.dismiss(proccessToast)
+            toast.error(`Can't delete`, {
+                position: "bottom-right",
+                autoClose: 5000,
+                closeOnClick: true,
+                theme: "light",
+            });
+        }).finally(() => {
+            dispatch(changeStatus_deleteSet(false))
+        })
+    }
+
 
     return (
         <div className="MainPage relative h-full w-full flex bg-[#f5f5f5]">
@@ -119,22 +187,24 @@ const MainPage: React.FC = () => {
 
                             </button>
 
-                            <button className="bg-red px-5 py-1 rounded-[5px]" title="Delete" onClick={toggleDeleteButton}>
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5 stroke-white stroke-2">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                                </svg>
-                            </button>
+                            {!isDelete && (
+                                <button className="bg-red px-5 py-1 rounded-[5px]" title="Delete" onClick={toggleDeleteButton}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5 stroke-white stroke-2">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                    </svg>
+                                </button>
+                            )}
                         </div>
                     </div>
 
                     <div className="flex justify-between">
                         <p className="text-grayy font-medium">Amount:</p>
-                        <p className="text-grayy font-medium">{dataSet.length} set</p>
+                        <p className="text-grayy font-medium">{dataSet.length} collection{dataSet.length > 1 ? "s" : ""}</p>
                     </div>
                 </div>
 
                 <div className="MainPage__listWordSet--list w-full flex-1 flex flex-col gap-2.5 px-[10px] py-[10px]">
-                    {dataSet.map((data, index) => (
+                    {dataSet && dataSet.map((data, index) => (
                         <div
                             key={index}
                             className="MainPage__tagSet flex items-center gap-5 bg-white px-5 py-4 rounded-[10px] border-[0.5px] border-lightGrayy hover:bg-[#f5f5f5] hover:cursor-grab active:cursor-grabbing"
@@ -143,7 +213,7 @@ const MainPage: React.FC = () => {
                         >
                             {isDelete && (
                                 <div className="">
-                                    <input type="checkbox" onChange={() => { toggleDeleteTag(index) }} checked={listChoose[index]} />
+                                    <input type="checkbox" onChange={() => { toggleDeleteTag(index) }} checked={!!listChoose[index]} />
                                 </div>
                             )}
 
@@ -174,14 +244,14 @@ const MainPage: React.FC = () => {
 
                         <div className="h-fit w-full flex gap-2.5 bg-white px-[10px] py-[10px]">
                             <button className="flex-1 h-fit text-undermediumSize font-medium bg-lightGrayy py-2.5 rounded-[10px]" onClick={toggleDeleteButton}>Cancel</button>
-                            <button className="flex-1 h-fit text-undermediumSize font-medium text-white bg-red py-2.5 rounded-[10px]">Delete</button>
+                            <button className="flex-1 h-fit text-undermediumSize font-medium text-white bg-red py-2.5 rounded-[10px]" onClick={handleDeleteSet}>Delete</button>
                         </div>
                     </div>
                 )}
             </div>
 
             <div className="MainPage--main flex-1 bg-[transparent] !px-padding-xy pt-padding-y overflow-y-auto">
-                {renderedComponent === "listWord" && <ListWord objSet={chooseSet} />}
+                {renderedComponent === "listWord" && <ListWord objSet={chooseSet} statusDelete={isDelete} />}
                 {renderedComponent === "empty" && <Empty />}
             </div>
 

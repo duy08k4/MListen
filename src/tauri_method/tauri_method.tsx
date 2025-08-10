@@ -124,6 +124,32 @@ export async function addANewSet(setData: SetStructure): Promise<void> {
   await createSetFile(setData.id)
 }
 
+// Remove a set
+export async function removeSet(listSetId: string[]): Promise<void> {
+  const allSetPath = import.meta.env.VITE_FOLDER_NAME + "/" + import.meta.env.VITE_ALL_SET
+
+  const checkAllSetFile = await exists(allSetPath, { baseDir: BaseDirectory.Document })
+  const checkSets = await Promise.all(listSetId.map(async (setId) => await exists(import.meta.env.VITE_SET_DIRECT + "/" + `${setId}.json`, { baseDir: BaseDirectory.Document })))
+
+  if (!checkAllSetFile) throw Error(`${import.meta.env.VITE_FOLDER_NAME} does not exists`)
+  if (checkSets.includes(false)) throw Error(`Some collection does not exists`)
+
+  console.log(checkSets)
+
+  const listSet = await readFile<SetStructure>()
+  const newListSet = listSet.filter(set => !listSetId.includes(set.id))
+
+  await writeFile(allSetPath, JSON.stringify(newListSet)).then(() => {
+    listSetId.forEach(async (setId) => {
+      const deletePath = import.meta.env.VITE_SET_DIRECT + "/" + `${setId}.json`
+      await deleteFile(deletePath)
+    })
+  }).catch((err) => {
+    console.error(err)
+    throw Error(err)
+  })
+}
+
 // Add a new word
 export async function addANewWord(setId: string, word: Word): Promise<void> {
   const checkPath = import.meta.env.VITE_SET_DIRECT + "/" + `${setId}.json`
@@ -134,7 +160,7 @@ export async function addANewWord(setId: string, word: Word): Promise<void> {
   if (!check) throw Error(`${setId}.json does not exists`)
   if (!checkFile) throw Error(`${import.meta.env.VITE_FOLDER_NAME} does not exists`)
 
-  const oldListWord = await readFile(setId)
+  const oldListWord = await readFile<Word>(setId)
   const now = new Date()
   const inputWord: Word = { ...word, timeCreate: format(now, 'ddd, MMM DD YYYY HH:mm') }
   const newListWord = [...oldListWord, inputWord]
@@ -250,7 +276,7 @@ export async function deleteWord(setId: string, listWordDelete: string[]): Promi
 
 // Delete file
 export async function deleteFile(fileName: string): Promise<void> {
-  await remove(fileName, { baseDir: BaseDirectory.Document });
+  return await remove(fileName, { baseDir: BaseDirectory.Document });
 }
 
 // Delete object in a file

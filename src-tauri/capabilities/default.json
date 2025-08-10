@@ -13,6 +13,7 @@
     "fs:allow-create",
     "fs:allow-write-text-file",
     "fs:allow-read-text-file",
+    "fs:allow-remove",
     {
       "identifier": "fs:scope",
       "allow": [
