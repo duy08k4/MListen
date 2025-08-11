@@ -250,7 +250,7 @@ const MainPage: React.FC = () => {
                 )}
             </div>
 
-            <div className="MainPage--main flex-1 bg-[transparent] !px-padding-xy pt-padding-y overflow-y-auto">
+            <div className="MainPage--main h-full flex-1 bg-[transparent] !px-padding-xy pt-padding-y overflow-y-auto">
                 {renderedComponent === "listWord" && <ListWord objSet={chooseSet} statusDelete={isDelete} />}
                 {renderedComponent === "empty" && <Empty />}
             </div>

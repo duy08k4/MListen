@@ -283,3 +283,19 @@ export async function deleteFile(fileName: string): Promise<void> {
 export async function deleteObjectInFile(): Promise<void> {
 
 }
+
+
+// Get sound
+export async function getSound(word: string): Promise<void> {
+  const data = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`, {
+    method: 'GET'
+  })
+    .then((res) => res.json())
+    .then((result) => {
+      // API trả về mảng -> lấy phần tử đầu tiên
+      return result
+    })
+    .catch((err) => console.error("Error:", err));
+
+  console.log(data)
+}

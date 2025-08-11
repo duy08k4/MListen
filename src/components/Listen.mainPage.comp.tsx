@@ -10,7 +10,7 @@ const Listen: React.FC<listen> = ({ closeListen }) => {
     const [isMeaning, setIsMeaning] = useState<boolean>(false)
 
     return (
-        <div className="Listen absolute h-full w-full bg-[#f5f5f5] flex justify-center items-center shadow-[0px_0px_5px_#d3d3d3] rounded-[10px]">
+        <div className="Listen absolute h-full w-full bg-white flex justify-center items-center shadow-[0px_0px_5px_#d3d3d3] rounded-[10px]">
             <div className="w-full flex justify-between items-center px-5">
                 <button className="h-fit text-white font-medium flex items-center gap-2.5 bg-red py-2.5 px-5 rounded-[5px]">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6 stroke-white">

@@ -2,7 +2,7 @@ interface Word {
     word: string,
     id: string,
     transcription: string,
-    partOfSpeech: string,
+    partOfSpeech: "noun" | "verb" | "adjective" | "adverb" | "",
     meaning: string,
     timeCreate?: string
 }
