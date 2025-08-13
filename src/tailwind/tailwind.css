@@ -9,7 +9,8 @@
         user-select: none;
     }
 
-    html, body {
+    html,
+    body {
         height: 100%;
         width: 100%;
         background-color: white;
@@ -21,7 +22,9 @@
         background-color: white;
     }
 
-    svg, i, img {
+    svg,
+    i,
+    img {
         user-select: none;
     }
 
@@ -36,16 +39,32 @@
     }
 }
 
+@layer utilities {
+
+    /* Chrome, Safari, Edge, Opera */
+    .no-spin::-webkit-inner-spin-button,
+    .no-spin::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    /* Firefox */
+    .no-spin {
+        -moz-appearance: textfield;
+    }
+}
+
 @theme {
     --color-dark: #3e3f46;
     --color-green: #4FBF9F;
-    --color-green-rgba: rgba(79,191,159,0.1);
+    --color-green-rgba: rgba(79, 191, 159, 0.1);
     --color-red: #FF7070;
     --color-blue: #00CED1;
+    --color-blue-rgb: rgba(0, 206, 209, 0.15);
     --color-orange: #FFD280;
     --color-grayy: #808080;
     --color-lightGrayy: #d3d3d3;
-    
+
     --text-hugeSige: 54px;
     --text-largeSize: 34px;
     --text-bigSize: 24px;

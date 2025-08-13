@@ -4,7 +4,9 @@ interface Word {
     transcription: string,
     partOfSpeech: "noun" | "verb" | "adjective" | "adverb" | "",
     meaning: string,
-    timeCreate?: string
+    timeCreate?: string,
+    audio?: string[],
+    targetLink?: string
 }
 
 interface SetStructure {

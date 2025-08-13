@@ -9,7 +9,7 @@ import {
   mkdir
 } from '@tauri-apps/plugin-fs';
 
-import { join, resolveResource, documentDir } from '@tauri-apps/api/path';
+import { join, documentDir } from '@tauri-apps/api/path';
 
 import { format } from 'date-and-time';
 
@@ -134,8 +134,6 @@ export async function removeSet(listSetId: string[]): Promise<void> {
   if (!checkAllSetFile) throw Error(`${import.meta.env.VITE_FOLDER_NAME} does not exists`)
   if (checkSets.includes(false)) throw Error(`Some collection does not exists`)
 
-  console.log(checkSets)
-
   const listSet = await readFile<SetStructure>()
   const newListSet = listSet.filter(set => !listSetId.includes(set.id))
 
@@ -162,8 +160,45 @@ export async function addANewWord(setId: string, word: Word): Promise<void> {
 
   const oldListWord = await readFile<Word>(setId)
   const now = new Date()
-  const inputWord: Word = { ...word, timeCreate: format(now, 'ddd, MMM DD YYYY HH:mm') }
-  const newListWord = [...oldListWord, inputWord]
+  const inputWord: Word = { ...word, timeCreate: format(now, 'ddd, MMM DD YYYY HH:mm'), transcription: word.transcription.replace("'", "ˈ") }
+
+  const data = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word.word}`, {
+    method: 'GET'
+  }).then((res) => res.json())
+    .then((result) => {
+      return result as Record<string, any>[]
+    })
+    .catch((err) => {
+      console.error("Error:", err)
+      return err
+    });
+
+  if (!Array.isArray(data)) throw Error(data)
+
+  const listSound = [...new Set(
+    data.flatMap((value) => {
+      const word_PartOfSpeech = word.partOfSpeech
+      const word_Transcription = word.transcription
+
+      const PartOfSpeech = value.meanings.map((pos: Record<string, any>) => pos.partOfSpeech).includes(word_PartOfSpeech)
+
+      if (PartOfSpeech) {
+        const Transcription = value.phonetics.filter((tt: Record<string, any>) => tt.text.includes(word_Transcription)).map((tt_data: Record<string, any>) => tt_data.audio.trim()).filter((filterData: string) => filterData)
+        return Transcription
+      } else {
+        return []
+      }
+    })
+  )]
+
+  let newWord: Word
+
+  if (listSound.length != 0) {
+    newWord = { ...inputWord, audio: listSound, targetLink: `https://dictionary.cambridge.org/vi/dictionary/english/${word.word}` }
+  } else {
+    newWord = { ...inputWord, targetLink: `https://dictionary.cambridge.org/vi/dictionary/english/${word.word}` }
+  }
+  let newListWord = [...oldListWord, newWord]
 
   const targetPath = import.meta.env.VITE_SET_DIRECT + "/" + `${setId}.json`
   await writeFile(targetPath, JSON.stringify(newListWord)).catch((err) => {
@@ -242,7 +277,6 @@ export async function deleteWord(setId: string, listWordDelete: string[]): Promi
       })
 
       const listWordWithoutDelete = listWord.filter(word => !listWordDelete.includes(word.id))
-      console.log(listWordWithoutDelete)
       const documentPath = await documentDir()
       // const pathData = await join(documentPath, import.meta.env.VITE_FOLDER_NAME + "/" + import.meta.env.VITE_ALL_SET)
       const pathData = await join(documentPath, path)
@@ -286,16 +320,60 @@ export async function deleteObjectInFile(): Promise<void> {
 
 
 // Get sound
-export async function getSound(word: string): Promise<void> {
-  const data = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`, {
-    method: 'GET'
-  })
-    .then((res) => res.json())
-    .then((result) => {
-      // API trả về mảng -> lấy phần tử đầu tiên
-      return result
-    })
-    .catch((err) => console.error("Error:", err));
+export async function getSound(word: Word): Promise<{ timeoutId: any, callbackFunc: () => void, delay: number }[]> {
+  const listWord = word.audio
 
-  console.log(data)
+  if (listWord?.length == 0) throw Error("Sound not found")
+
+  let soudId: { timeoutId: any, callbackFunc: () => void, delay: number }[] = []
+
+  listWord?.forEach((url, index) => {
+    const delay = index * 1500
+    const callbackFunc = () => {
+      const sound = new Audio(url)
+      sound.play()
+    }
+    const timeoutId = setTimeout(callbackFunc, delay)
+    clearTimeout(timeoutId)
+    soudId.push({ timeoutId, callbackFunc, delay })
+  })
+
+  return soudId
+}
+
+export async function playSound<T>(listSound: { timeoutId: T, callbackFunc: () => void, delay: number }[]): Promise<ReturnType<typeof setTimeout>[] | []> {
+  let listIdForStop: ReturnType<typeof setTimeout>[] = []
+
+  if (listSound.length > 1) {
+    TTS(`You have ${listSound.length} sounds`)
+    await new Promise(r => setTimeout(r, 3000));
+  }
+
+  if (listSound.length == 0) {
+    TTS(`No sound found`)
+    return []
+  }
+
+  listSound.forEach(sound => {
+    const sessionPlay = setTimeout(sound.callbackFunc, sound.delay)
+    listIdForStop.push(sessionPlay)
+  })
+
+  return listIdForStop
+}
+
+function TTS(text: string) {
+  if (!window.speechSynthesis) {
+    console.error("Browsers do not support Web Speech API");
+    return;
+  }
+
+  const utterance = new SpeechSynthesisUtterance(text);
+
+  // Custom
+  utterance.lang = 'en-US';      // Vietnamese
+  utterance.rate = 0.8;            // speed (0.1 - 10)
+  utterance.pitch = 0.1;           // pitch (0 - 2)
+
+  speechSynthesis.speak(utterance);
 }

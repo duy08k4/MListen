@@ -1,5 +1,5 @@
 // Import libraries
-import React, { useEffect, useRef, useState } from "react"
+import React, { useEffect, useState } from "react"
 
 // Import images
 // import AppLogo from "../../assets/LogoApp.png"
@@ -10,16 +10,19 @@ import ListWord from "../../components/ListWord.mainPage.comp"
 import NewSet from "../../components/NewSet.mainPage.comp"
 
 // Import redux
-import { toast, ToastContainer } from "react-toastify"
-import { useDispatch, useSelector } from "react-redux"
+import { ToastContainer } from "react-toastify"
+import { useSelector } from "react-redux"
 import { RootState } from "../../redux/store"
 
 // Import method system file
-import { readFile, removeSet } from "../../tauri_method/tauri_method"
+import { readFile } from "../../tauri_method/tauri_method"
 
 // Import type
 import { SetStructure } from "../../types/DataStructure"
-import { changeStatus_deleteSet } from "../../redux/active"
+
+// Import handler
+import { toggleButton_MainPage } from "../../handler/handler_MainPage/toggleButton_MainPage"
+import { handler_MainPage } from "../../handler/handler_MainPage/handler_MainPage"
 
 const MainPage: React.FC = () => {
     // State
@@ -39,74 +42,48 @@ const MainPage: React.FC = () => {
     })
 
     // Redux
-    const dispatch = useDispatch()
     const state_newSet = useSelector((state: RootState) => state.activeAction.newSet)
     const state_newWord = useSelector((state: RootState) => state.activeAction.newWord)
-    const state_deleteWord = useSelector((state: RootState) => state.activeAction.deleteSet)
+    const state_deleteSet = useSelector((state: RootState) => state.activeAction.deleteSet)
 
     // Effect
     useEffect(() => {
         (async () => {
             const data = await readFile<SetStructure>()
             setDataSet(data)
+            setListChoose(data.map(() => false))
 
-            if (chooseSet.id) {
+            if (chooseSet && chooseSet.id) {
                 const newData = data.filter(set => set.id === chooseSet.id)[0]
                 setChooseSet(newData)
             }
 
-            if (data.length > dataSet.length) {
+            if (data.length > dataSet.length) { // Create a new set and open it instanly
                 setChooseSet(data[0])
+                setRenderedComponent("listWord");
+            }
+
+            if (data.length < dataSet.length) {
+                const findRecentSet = data.filter(value => value.id === chooseSet.id)
+                if (findRecentSet.length === 0) setRenderedComponent("empty")
             }
         })()
-    }, [state_newSet, state_newWord, state_deleteWord])
+    }, [state_newSet, state_newWord, state_deleteSet])
 
-    // Toggle
-    const toggleDeleteButton = () => {
-        const toggleValue = !isDelete
+    // Toggle button
+    const {
+        toggleDeleteButton, toggleDeleteTag, toggleAddNewSet, changeChooseAll
+    } = toggleButton_MainPage(
+        { isDelete, listChoose, state_deleteSet, isNewSet },
+        { setIsDelete, setListChoose, setIsNewSet }
+    )
 
-        if (!toggleValue) {
-            const newListChoose = listChoose.map(() => false)
-            setListChoose([...newListChoose])
-        }
-
-        if (!state_deleteWord) {
-            setIsDelete(toggleValue)
-        } else {
-            toast.warn('Your collection is being progressed', {
-                position: "bottom-right",
-                autoClose: 5000,
-                closeOnClick: true,
-                theme: "light",
-            });
-            return
-        }
-    }
-
-    const toggleDeleteTag = (index: number) => {
-        const toggleValue = !listChoose[index]
-
-        if (typeof toggleValue === "boolean") {
-            const listChoose_copy = listChoose
-            listChoose_copy[index] = toggleValue
-            setListChoose([...listChoose_copy])
-        }
-    }
-
-    const toggleAddNewSet = () => {
-        setIsNewSet(!isNewSet)
-    }
-
-    // Change
-    const changeChooseAll = (checked: boolean) => {
-        if (checked) {
-            const newList = listChoose.map(() => true)
-            setListChoose([...newList])
-        } else {
-            const newList = listChoose.map(() => false)
-            setListChoose([...newList])
-        }
-    }
+    // Handler
+    const { handleDeleteSet } = handler_MainPage(
+        { chooseSet, dataSet, listChoose },
+        { setChooseSet },
+        { toggleDeleteButton }
+    )
 
     // Choose tag
     const chooseTag = (index: number, objSet: SetStructure) => {
@@ -118,58 +95,6 @@ const MainPage: React.FC = () => {
             setRenderedComponent("listWord")
         }
     }
-
-    // Delete set
-    const handleDeleteSet = async () => {
-        let listDelete = dataSet.map((set, index) => listChoose[index] ? set.id : null).filter(value => value) as string[]
-
-        if (listDelete.length === 0) {
-            toast.warn('Please choose at least one collection', {
-                position: "bottom-right",
-                autoClose: 5000,
-                closeOnClick: true,
-                theme: "light",
-            });
-            return
-        }
-
-        toggleDeleteButton()
-
-        const proccessToast = toast.loading(`Deleting...`, {
-            position: "bottom-right",
-            autoClose: false,
-            closeOnClick: false,
-            theme: "light",
-        });
-
-        dispatch(changeStatus_deleteSet(true))
-
-        await removeSet(listDelete).then(() => {
-            toast.dismiss(proccessToast)
-            toast.success('Deleted', {
-                position: "bottom-right",
-                autoClose: 5000,
-                closeOnClick: true,
-                theme: "light",
-            });
-
-            if (listDelete.includes(chooseSet.id)) {
-                setRenderedComponent("empty")
-            }
-        }).catch((err) => {
-            console.error(err)
-            toast.dismiss(proccessToast)
-            toast.error(`Can't delete`, {
-                position: "bottom-right",
-                autoClose: 5000,
-                closeOnClick: true,
-                theme: "light",
-            });
-        }).finally(() => {
-            dispatch(changeStatus_deleteSet(false))
-        })
-    }
-
 
     return (
         <div className="MainPage relative h-full w-full flex bg-[#f5f5f5]">
