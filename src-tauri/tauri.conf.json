@@ -19,13 +19,21 @@
     ],
     "withGlobalTauri": true,
     "security": {
-      "csp": "default-src 'self'; img-src 'self' asset: https://asset.localhost"
+      "csp": {
+        "default-src": "'self'",
+        "style-src": "'self' http://ipc.localhost https://cdnjs.cloudflare.com",
+        "connect-src": "'self' http://ipc.localhost https://api.dictionaryapi.dev",
+        "media-src": "'self' https://api.dictionaryapi.dev"
+      },
+      "headers": {
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Expose-Headers": "X-Custom-Header"
+      }
     }
   },
   "plugins": {
-    "fs": {
-      
-    },
+    "fs": {},
     "permissions": [
       "default"
     ]

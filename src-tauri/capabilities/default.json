@@ -17,6 +17,8 @@
     "core:webview:allow-create-webview-window",
     "core:window:allow-close",
     "core:window:allow-set-focus",
+    "core:window:allow-destroy",
+    "core:app:allow-fetch-data-store-identifiers",
     {
       "identifier": "fs:scope",
       "allow": [
