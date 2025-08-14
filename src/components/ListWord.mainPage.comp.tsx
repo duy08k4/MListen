@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from "react"
 import { toast } from "react-toastify"
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
+import { getCurrentWindow } from "@tauri-apps/api/window";
 
 // Import type
 import { Word, SetStructure } from "../types/DataStructure"
@@ -67,6 +68,9 @@ const ListWord: React.FC<ListWord> = ({ objSet, statusDelete }) => {
     const debounce_keySearch = useDebounce(keySearch, 500)
 
     useEffect(() => {
+        if (objSet.id !== idSet) {
+            setListenMode(false)
+        }
         setNameSet(objSet.name)
         setIdSet(objSet.id)
     }, [objSet])
@@ -188,20 +192,27 @@ const ListWord: React.FC<ListWord> = ({ objSet, statusDelete }) => {
         }
     }
 
-    function openLink(url: string) {
-        if (webviewRef.current) {
-            if (url === recentTargetLink) {
-                webviewRef.current.setFocus();
-                return;
-            } else {
+    function openLink(url: string, label?: string) {
+        if (webviewRef.current && url === recentTargetLink) {
+            webviewRef.current.setFocus();
+            return;
+        } else {
+            if (webviewRef.current && url !== recentTargetLink) {
                 webviewRef.current.close();
                 webviewRef.current = null;
+                setWebviewWindowTrigger(!webviewWindowTrigger)
             }
         }
 
-        const webview = new WebviewWindow('cambridge', {
+        const webviewWindowLabel = label ? label : "cambridge"
+
+        const webview = new WebviewWindow(webviewWindowLabel, {
             url: url,
             title: 'MListen - Cambridge Dictionary',
+            minWidth: 600,
+            minHeight: 700,
+            maxWidth: 700,
+            maxHeight: 800,
             width: 600,
             height: 700
         });
@@ -216,28 +227,37 @@ const ListWord: React.FC<ListWord> = ({ objSet, statusDelete }) => {
 
         webview.once('tauri://close-requested', () => {
             webview.close()
-            webviewRef.current = null;
+            // webviewRef.current = null;
+            setWebviewWindowTrigger(!webviewWindowTrigger)
             setRecentTargetLink("");
         });
 
+        // console.log(webview)
         webviewRef.current = webview;
+        setWebviewWindowTrigger(!webviewWindowTrigger)
         setRecentTargetLink(url);
     }
 
     // Dictionary
     const handleOpenDictionary = () => {
-        if (webviewRef.current) {
-            toast.info(`The dictionary is already open`, {
-                position: "bottom-right",
-                autoClose: 5000,
-                closeOnClick: true,
-                theme: "light",
-            });
-        } else {
-            const url = "https://dictionary.cambridge.org/vi/dictionary/english"
-            openLink(url)
-        }
+        const url = "https://dictionary.cambridge.org/vi/dictionary/english"
+        openLink(url, "dictionary")
     }
+
+    // Close sub window
+    const [webviewWindowTrigger, setWebviewWindowTrigger] = useState<boolean>(false)
+
+    useEffect(() => {
+        (async () => {
+            await getCurrentWindow().onCloseRequested(async () => {
+                if (webviewRef.current) {
+                    webviewRef.current.destroy();
+                }
+                console.log(webviewRef.current)
+            });
+
+        })()
+    }, [])
 
     return (
         <div className="ListWord  h-full w-full bg-[transparent] flex flex-col gap-2.5 ">
@@ -274,13 +294,15 @@ const ListWord: React.FC<ListWord> = ({ objSet, statusDelete }) => {
                         {listenMode ? "Turn Off Listen Mode" : "Listen Mode"}
                     </button>
 
-                    <button className="text-normalSize font-medium text-white flex items-center gap-2.5 bg-orange py-[10px] px-[20px] rounded-[5px]" onClick={handleOpenDictionary}>
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-4 stroke-white stroke-2">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
-                        </svg>
+                    {!listenMode && (
+                        <button className="text-normalSize font-medium text-white flex items-center gap-2.5 bg-orange py-[10px] px-[20px] rounded-[5px]" onClick={handleOpenDictionary}>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-4 stroke-white stroke-2">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+                            </svg>
 
-                        Open Dictionary
-                    </button>
+                            Open Dictionary
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -374,7 +396,9 @@ const ListWord: React.FC<ListWord> = ({ objSet, statusDelete }) => {
                 </div>
 
                 <div className="TIPs flex items-center gap-2.5 bg-blue-rgb px-5 py-2.5">
-                    <i className="fas fa-info font-medium text-blue"></i>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 512" className="size-4 fill-blue">
+                        <path d="M20 424.229h20V279.771H20c-11.046 0-20-8.954-20-20V212c0-11.046 8.954-20 20-20h112c11.046 0 20 8.954 20 20v212.229h20c11.046 0 20 8.954 20 20V492c0 11.046-8.954 20-20 20H20c-11.046 0-20-8.954-20-20v-47.771c0-11.046 8.954-20 20-20zM96 0C56.235 0 24 32.235 24 72s32.235 72 72 72 72-32.235 72-72S135.764 0 96 0z" />
+                    </svg>
 
                     <p className="font-medium">
                         Double click on a word and click the <u className="text-blue"><b className="text-blue">Learn More</b></u> button to learn more about the word.
@@ -385,7 +409,13 @@ const ListWord: React.FC<ListWord> = ({ objSet, statusDelete }) => {
                     <tbody className="">
                         {isAddNewWord && (
                             <tr className="leading-[3] bg-[#f5f5f5]">
-                                <td className="text-center py-2.5"><button className="h-[50px] w-full bg-green px-2.5" onClick={handleAddANewWord}><i className="fas fa-check text-white"></i></button></td>
+                                <td className="text-center py-2.5">
+                                    <button className="h-[50px] w-full bg-green flex justify-center items-center px-2.5" onClick={handleAddANewWord}>
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" className="size-4 fill-white">
+                                            <path d="M173.898 439.404l-166.4-166.4c-9.997-9.997-9.997-26.206 0-36.204l36.203-36.204c9.997-9.998 26.207-9.998 36.204 0L192 312.69 432.095 72.596c9.997-9.997 26.207-9.997 36.204 0l36.203 36.204c9.997 9.997 9.997 26.206 0 36.204l-294.4 294.401c-9.998 9.997-26.207 9.997-36.204-.001z" />
+                                        </svg>
+                                    </button>
+                                </td>
                                 <td className="text-center py-2.5"><input type="text" className="outline-none h-[50px] w-[95%] bg-white px-2.5 border border-lightGrayy" value={newWord.word} onChange={(e) => { handleInputNewWord("word", e.target.value) }} placeholder="Word..." /></td>
                                 <td className="text-center py-2.5"><input type="text" className="outline-none h-[50px] w-[95%] bg-white px-2.5 border border-lightGrayy" value={newWord.transcription} onChange={(e) => { handleInputNewWord("transcription", e.target.value) }} placeholder="Transcription..." /></td>
                                 <td className="h-full text-center py-2.5">
@@ -450,9 +480,17 @@ const ListWord: React.FC<ListWord> = ({ objSet, statusDelete }) => {
 
             <div className="h-[60px] flex gap-5 justify-center items-center">
                 <span className="text-normalSize flex gap-1.5 items-center">
-                    <i className="fas fa-globe"></i>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-5 stroke-3">
+                        <path d="M15.75 8.25a.75.75 0 0 1 .75.75c0 1.12-.492 2.126-1.27 2.812a.75.75 0 1 1-.992-1.124A2.243 2.243 0 0 0 15 9a.75.75 0 0 1 .75-.75Z" />
+                        <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM4.575 15.6a8.25 8.25 0 0 0 9.348 4.425 1.966 1.966 0 0 0-1.84-1.275.983.983 0 0 1-.97-.822l-.073-.437c-.094-.565.25-1.11.8-1.267l.99-.282c.427-.123.783-.418.982-.816l.036-.073a1.453 1.453 0 0 1 2.328-.377L16.5 15h.628a2.25 2.25 0 0 1 1.983 1.186 8.25 8.25 0 0 0-6.345-12.4c.044.262.18.503.389.676l1.068.89c.442.369.535 1.01.216 1.49l-.51.766a2.25 2.25 0 0 1-1.161.886l-.143.048a1.107 1.107 0 0 0-.57 1.664c.369.555.169 1.307-.427 1.605L9 13.125l.423 1.059a.956.956 0 0 1-1.652.928l-.679-.906a1.125 1.125 0 0 0-1.906.172L4.575 15.6Z" clipRule="evenodd" />
+                    </svg>
+
                     <a href="https://my-portfolio-duytrans-projects-ad2c698e.vercel.app/" className="font-bold underline italic" target="_blank" rel="noopener noreferrer">Who is dDev?</a>
-                    <i className="fas fa-globe"></i>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-5 stroke-3">
+                        <path d="M15.75 8.25a.75.75 0 0 1 .75.75c0 1.12-.492 2.126-1.27 2.812a.75.75 0 1 1-.992-1.124A2.243 2.243 0 0 0 15 9a.75.75 0 0 1 .75-.75Z" />
+                        <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM4.575 15.6a8.25 8.25 0 0 0 9.348 4.425 1.966 1.966 0 0 0-1.84-1.275.983.983 0 0 1-.97-.822l-.073-.437c-.094-.565.25-1.11.8-1.267l.99-.282c.427-.123.783-.418.982-.816l.036-.073a1.453 1.453 0 0 1 2.328-.377L16.5 15h.628a2.25 2.25 0 0 1 1.983 1.186 8.25 8.25 0 0 0-6.345-12.4c.044.262.18.503.389.676l1.068.89c.442.369.535 1.01.216 1.49l-.51.766a2.25 2.25 0 0 1-1.161.886l-.143.048a1.107 1.107 0 0 0-.57 1.664c.369.555.169 1.307-.427 1.605L9 13.125l.423 1.059a.956.956 0 0 1-1.652.928l-.679-.906a1.125 1.125 0 0 0-1.906.172L4.575 15.6Z" clipRule="evenodd" />
+                    </svg>
+
                 </span>
                 <span className="text-normalSize flex gap-2.5">
                     <b>© 2025 dDev</b>
