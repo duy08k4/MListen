@@ -1,6 +1,7 @@
 // Import libraries
 import { toast } from "react-toastify"
 import { useDispatch } from "react-redux"
+import React from "react"
 
 // Import redux
 import { changeStatus_deleteSet } from "../../redux/active"
@@ -9,8 +10,7 @@ import { changeStatus_deleteSet } from "../../redux/active"
 import { SetStructure } from "../../types/DataStructure"
 
 // Import tauri method
-import { removeSet } from "../../tauri_method/tauri_method"
-import React from "react"
+import { removeSet } from "../../core/removeSet"
 
 type values = {
     dataSet: SetStructure[],

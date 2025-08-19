@@ -15,7 +15,7 @@ import { useSelector } from "react-redux"
 import { RootState } from "../../redux/store"
 
 // Import method system file
-import { readFile } from "../../tauri_method/tauri_method"
+import { readFile } from "../../core/readFile"
 
 // Import type
 import { SetStructure } from "../../types/DataStructure"

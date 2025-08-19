@@ -14,7 +14,8 @@ import { Word, SetStructure } from "../types/DataStructure"
 import { useDebounce } from "../customHooks/debounce"
 
 // Import method system file
-import { changeSetName, readFile } from "../tauri_method/tauri_method"
+import { changeSetName } from "../core/changeSetName";
+import { readFile } from "../core/readFile";
 
 // Import redux
 import { useDispatch, useSelector } from "react-redux"

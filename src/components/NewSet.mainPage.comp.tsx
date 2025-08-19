@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { v4 } from "uuid"
 
 // Import method
-import { addANewSet } from "../tauri_method/tauri_method";
+import { addANewSet } from "../core/addNewSet";
 
 // Import type
 import { SetStructure } from "../types/DataStructure";
