@@ -11,7 +11,10 @@ import { Word } from "../../types/DataStructure"
 import { changeStatus_deleteSet, changeStatus_newWord } from "../../redux/active"
 
 // Import tauri method
-import { addANewWord, deleteWord, getSound, playSound, removeSet } from "../../tauri_method/tauri_method"
+import { getSound, playSound } from "../../core/sound"
+import { addANewWord } from "../../core/addNewWord"
+import { deleteWord } from "../../core/removeWords"
+import { removeSet } from "../../core/removeSet"
 
 type values = {
     debounce_keySearch: React.ReactNode,
