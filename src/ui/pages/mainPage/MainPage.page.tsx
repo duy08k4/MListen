@@ -12,13 +12,13 @@ import NewSet from "../../components/NewSet.mainPage.comp"
 // Import redux
 import { ToastContainer } from "react-toastify"
 import { useSelector } from "react-redux"
-import { RootState } from "../../redux/store"
+import { RootState } from "../../../state/store"
 
 // Import method system file
-import { readFile } from "../../core/readFile"
+import { readFile } from "../../../core/readFile"
 
 // Import type
-import { SetStructure } from "../../types/DataStructure"
+import { SetStructure } from "../../../type/DataStructure"
 
 // Import handler
 import { toggleButton_MainPage } from "../../handler/handler_MainPage/toggleButton_MainPage"

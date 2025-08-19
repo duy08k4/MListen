@@ -2,7 +2,7 @@
 import React from "react"
 
 // Import image
-import AppLogo from "../../assets/LogoApp.png"
+import AppLogo from "../../../assets/LogoApp.png"
 
 const StartPage: React.FC = () => {
     return (

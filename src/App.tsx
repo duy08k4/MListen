@@ -3,8 +3,8 @@ import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 // Import pages
-import StartPage from "./pages/startPage/StartPage.page";
-import MainPage from "./pages/mainPage/MainPage.page";
+import StartPage from "./ui/pages/startPage/StartPage.page";
+import MainPage from "./ui/pages/mainPage/MainPage.page";
 
 const App: React.FC = () => {
   return (

@@ -14,7 +14,7 @@ import { join, documentDir } from '@tauri-apps/api/path';
 import { format } from 'date-and-time';
 
 // Import type
-import { Word, SetStructure } from '../types/DataStructure';
+import { Word, SetStructure } from '../type/DataStructure';
 
 // Read file
 export async function readFile<T extends Word | SetStructure>(fileName?: string): Promise<T[]> {

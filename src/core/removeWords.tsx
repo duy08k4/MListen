@@ -9,7 +9,7 @@ import { join, documentDir } from '@tauri-apps/api/path';
 import { format } from 'date-and-time';
 
 // Import type
-import { SetStructure } from '../types/DataStructure';
+import { SetStructure } from '../type/DataStructure';
 
 // Import functions
 import { readFile } from './readFile';
