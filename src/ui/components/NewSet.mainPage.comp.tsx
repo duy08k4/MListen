@@ -5,13 +5,13 @@ import { toast } from "react-toastify";
 import { v4 } from "uuid"
 
 // Import method
-import { addANewSet } from "../core/addNewSet";
+import { addANewSet } from "../../core/addNewSet";
 
 // Import type
-import { SetStructure } from "../types/DataStructure";
+import { SetStructure } from "../../type/DataStructure";
 
 // Import redux
-import { changeStatus_newSet } from "../redux/active";
+import { changeStatus_newSet } from "../../state/active";
 import { useDispatch } from "react-redux";
 
 

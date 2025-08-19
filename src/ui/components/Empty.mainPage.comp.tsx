@@ -2,7 +2,7 @@
 import React from "react"
 
 // Import images
-import LearningImg from "../assets/LearningImg.png"
+import LearningImg from "../../assets/LearningImg.png"
 
 const Empty: React.FC = () => {
     return (

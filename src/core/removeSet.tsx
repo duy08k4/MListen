@@ -5,7 +5,7 @@ import {
 } from '@tauri-apps/plugin-fs';
 
 // Import type
-import { SetStructure } from '../types/DataStructure';
+import { SetStructure } from '../type/DataStructure';
 
 // Import functions
 import { writeFile } from './writeFile';

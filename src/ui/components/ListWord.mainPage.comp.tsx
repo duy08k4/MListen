@@ -5,22 +5,22 @@ import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { getCurrentWindow } from "@tauri-apps/api/window";
 
 // Import type
-import { Word, SetStructure } from "../types/DataStructure"
+import { Word, SetStructure } from "../../type/DataStructure";
 
 // Import component
 // import Listen from "./Listen.mainPage.comp"
 
 // Import custom hook
-import { useDebounce } from "../customHooks/debounce"
+import { useDebounce } from "../../hooks/debounce";
 
 // Import method system file
-import { changeSetName } from "../core/changeSetName";
-import { readFile } from "../core/readFile";
+import { changeSetName } from "../../core/changeSetName";
+import { readFile } from "../../core/readFile";
 
 // Import redux
 import { useDispatch, useSelector } from "react-redux"
-import { changeStatus_newSet } from "../redux/active"
-import { RootState } from "../redux/store"
+import { changeStatus_newSet } from "../../state/active"
+import { RootState } from "../../state/store"
 
 // Import handler
 import { toggleButton_ListWord } from "../handler/handler_ListWord/toggleButton_ListWord";

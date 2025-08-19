@@ -5,16 +5,16 @@ import { v4 } from "uuid"
 import { useDispatch } from "react-redux"
 
 // Import type
-import { Word } from "../../types/DataStructure"
+import { Word } from "../../../type/DataStructure"
 
 // Import redux
-import { changeStatus_deleteSet, changeStatus_newWord } from "../../redux/active"
+import { changeStatus_deleteSet, changeStatus_newWord } from "../../../state/active"
 
 // Import tauri method
-import { getSound, playSound } from "../../core/sound"
-import { addANewWord } from "../../core/addNewWord"
-import { deleteWord } from "../../core/removeWords"
-import { removeSet } from "../../core/removeSet"
+import { getSound, playSound } from "../../../core/sound"
+import { addANewWord } from "../../../core/addNewWord"
+import { deleteWord } from "../../../core/removeWords"
+import { removeSet } from "../../../core/removeSet"
 
 type values = {
     debounce_keySearch: React.ReactNode,

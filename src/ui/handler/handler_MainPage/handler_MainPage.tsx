@@ -4,13 +4,13 @@ import { useDispatch } from "react-redux"
 import React from "react"
 
 // Import redux
-import { changeStatus_deleteSet } from "../../redux/active"
+import { changeStatus_deleteSet } from "../../../state/active"
 
 // Import type
-import { SetStructure } from "../../types/DataStructure"
+import { SetStructure } from "../../../type/DataStructure"
 
 // Import tauri method
-import { removeSet } from "../../core/removeSet"
+import { removeSet } from "../../../core/removeSet"
 
 type values = {
     dataSet: SetStructure[],

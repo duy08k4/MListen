@@ -1,5 +1,5 @@
 // Import type
-import { Word} from '../types/DataStructure';
+import { Word} from '../type/DataStructure';
 
 // Get sound
 export async function getSound(word: Word): Promise<{ timeoutId: any, callbackFunc: () => void, delay: number }[]> {

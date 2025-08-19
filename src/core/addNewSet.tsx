@@ -10,7 +10,7 @@ import {
 import { join, documentDir } from '@tauri-apps/api/path';
 
 // Import type
-import { SetStructure } from '../types/DataStructure';
+import { SetStructure } from '../type/DataStructure';
 
 // Import function
 import { writeFile } from './writeFile';
